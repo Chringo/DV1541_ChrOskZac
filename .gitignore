@@ -27,6 +27,9 @@
 *.out
 *.app
 
-#Extras DV1541
-*.tlog
+#DV1541 build
 *.log
+
+#DV1541 increment (not sure about this one)
+*.ilk
+*.tlog
