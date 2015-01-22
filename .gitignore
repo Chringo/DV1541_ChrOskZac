@@ -28,5 +28,5 @@
 *.app
 
 #Extras DV1541
-.tlog
-.log
+*.tlog
+*.log
