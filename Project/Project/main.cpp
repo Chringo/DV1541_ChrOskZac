@@ -51,7 +51,7 @@ int main()
 	renderWindow rWindow(window);
 	rWindow.createThread();
 	// while window is open
-	while (!glfwWindowShouldClose(window))
+	while (rWindow.isThreadRunning())
 	{
 		// check for events
 		glfwPollEvents();

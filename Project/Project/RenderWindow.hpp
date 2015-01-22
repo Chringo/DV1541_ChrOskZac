@@ -13,6 +13,8 @@ public:
 
 	void createThread();
 
+	bool isThreadRunning() const;
+
 private:
 
 	void renderThread();
@@ -22,6 +24,7 @@ private:
 
 	std::thread* threadPointer;
 
+	bool threadRunning;
 };
 
 #endif

@@ -3,6 +3,7 @@
 renderWindow::renderWindow(GLFWwindow* window)
 {
 	this->window = window;
+	threadRunning = false;
 }
 
 renderWindow::~renderWindow()
@@ -13,11 +14,19 @@ renderWindow::~renderWindow()
 void renderWindow::createThread()
 {
 	threadPointer = new std::thread(&renderWindow::renderThread, this);
+	if (threadPointer)
+	{
+		threadRunning = true;
+	}
+}
+
+bool renderWindow::isThreadRunning() const
+{
+	return threadRunning;
 }
 
 void renderWindow::renderThread()
 {
-
 	glfwMakeContextCurrent(window);
 	// enable vsync
 	glfwSwapInterval(1);
@@ -26,6 +35,7 @@ void renderWindow::renderThread()
 	{
 		render();
 	}
+	threadRunning = false;
 }
 
 void renderWindow::render()
