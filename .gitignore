@@ -27,10 +27,12 @@
 *.out
 *.app
 
-#DV1541 build
-*.log
-
-#DV1541 increment (not sure about this one)
+#DV1541
+Project/Project/Debug/vc120.idb
+Project/Project/Debug/vc120.pdb
 Project/Debug/Project.ilk
 Project/Debug/Project.pdb
+Project/Project.v12.suo
+Project/Project.sdf
 *.tlog
+*.log
