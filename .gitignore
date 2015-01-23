@@ -31,5 +31,6 @@
 *.log
 
 #DV1541 increment (not sure about this one)
-Project/Debug/Project/*.ilk
+Project/Debug/Project.ilk
+Project/Debug/Project.pdb
 *.tlog
