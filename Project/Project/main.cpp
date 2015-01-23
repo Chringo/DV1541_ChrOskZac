@@ -1,4 +1,5 @@
-#include <glfw3.h>
+#include <GL\glew.h>
+#include <GLFW\glfw3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "RenderWindow.hpp"
@@ -23,7 +24,7 @@ int main()
 {
 
 	// window pointer
-	GLFWwindow* window;
+	GLFWwindow* window = nullptr;
 
 	glfwSetErrorCallback(error_callback);
 
@@ -37,7 +38,7 @@ int main()
 
 	// create a window with 400 400 in size
 	window = glfwCreateWindow(400, 400, "Title", NULL, NULL);
-
+	
 	// if we failed creating a window
 	if (!window)
 	{
@@ -47,6 +48,22 @@ int main()
 
 	// when a key is pressed can this function
 	glfwSetKeyCallback(window, key_callback);
+
+	/// this is needed for glewinit
+	glfwMakeContextCurrent(window);
+	GLenum err = glewInit();
+	if (GLEW_OK != err)
+	{
+		/* Problem: glewInit failed, something is seriously wrong. */
+		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+	}
+	else
+	{
+		fprintf(stderr, "glew initialized");
+	}
+	glfwMakeContextCurrent(NULL);
+	///
+
 
 	renderWindow rWindow(window);
 	rWindow.createThread();

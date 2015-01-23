@@ -1,8 +1,9 @@
 #ifndef RENDERWINDOW_HPP
 #define RENDERWINDOW_HPP
 
-#include <glfw3.h>
+#include <GLFW/glfw3.h>
 #include <thread>
+#include "RenderObject.hpp"
 
 class renderWindow
 {
@@ -25,6 +26,8 @@ private:
 	std::thread* threadPointer;
 
 	bool threadRunning;
+
+	renderObject obj;
 };
 
 #endif
