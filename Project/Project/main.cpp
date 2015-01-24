@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "RenderWindow.hpp"
+#include <Windows.h>
 
 
 
@@ -79,10 +80,12 @@ int main()
 		// check for events
 		rWindow.update();
 		glfwPollEvents();
+		Sleep(1);
 	}
 
 	// destroy the window
 	glfwDestroyWindow(window);
+	glfwDestroyWindow(temp);
 
 	// free resources the library have used
 	glfwTerminate();
