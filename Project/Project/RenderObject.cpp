@@ -1,5 +1,10 @@
 #include "RenderObject.hpp"
 
+#define GLM_FORCE_RADIANS
+
+#include <glm\glm.hpp>
+#include <glm\gtc\matrix_transform.hpp>
+
 #define BUFFER_OFFSET(i) ((char *)nullptr + (i))
 
 renderObject::renderObject()
@@ -15,11 +20,16 @@ void renderObject::genBuffer()
 		layout(location = 0) in vec3 vertex_position;
 		layout(location = 1) in vec3 vertex_color;
 		
+		uniform mat4 model;
+		uniform mat4 view;
+		uniform mat4 projection;
+
+
 		out vec3 color;
 		
 		void main () {
 			color = vertex_color;
-			gl_Position = vec4 (vertex_position, 1.0);
+			gl_Position = projection * view * model * vec4 (vertex_position, 1.0);
 		}
 	)";
 
@@ -52,11 +62,6 @@ void renderObject::genBuffer()
 	glDeleteShader(vs);
 	glDeleteShader(fs);
 
-
-	glGenBuffers(1, &vBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
-
-
 	struct TriangleVertex
 	{
 		float x, y, z;
@@ -65,7 +70,15 @@ void renderObject::genBuffer()
 
 	TriangleVertex tri[1];
 
+	glGenBuffers(1, &vBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
+
 	glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_DYNAMIC_DRAW);
+
+	glGenBuffers(1, &indexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(tri), tri, GL_DYNAMIC_DRAW);
 
 	glGenVertexArrays(1, &vArray);
 	glBindVertexArray(vArray);
@@ -107,8 +120,23 @@ void renderObject::fillBuffer()
 			-0.5f, -0.5f, 0.0f, //v3
 			1.0f, 0.0f, 0.0f
 		};
+
+		struct Ind
+		{
+			GLshort x, y, z;
+		};
+
+		Ind index[2] =
+		{
+			0, 1, 2,
+			1, 2, 3
+		};
+
 		glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index), index, GL_DYNAMIC_DRAW);
 
 		glFlush();
 	}
@@ -122,8 +150,36 @@ renderObject::~renderObject()
 void renderObject::render()
 {
 	glUseProgram(gShaderProgram);
+	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
 	glBindVertexArray(vArray);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
 	// draw points 0-3 from the currently bound VAO with current in-use shader
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (void*)0);
+
+
+	ry += 1.0f;
+
+	glm::mat4 modelMatrix = glm::mat4(
+		cos((glm::pi<float>() / 180)*ry), 0.0f, -sin((glm::pi<float>() / 180)*ry), 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		sin((glm::pi<float>() / 180)*ry), 0.0f, cos((glm::pi<float>() / 180)*ry), 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f);
+
+	glm::mat4 viewMatrix = glm::lookAt(
+		glm::vec3(0, 0, 2),
+		glm::vec3(0, 0, 0),
+		glm::vec3(0, 1, 0)
+		);
+
+	glm::mat4 projectionMatrix = glm::perspective(glm::pi<float>() * 0.45f, 640.0f / 480.0f, 0.5f, 20.0f);
+
+	GLuint modelMat = glGetUniformLocation(gShaderProgram, "model");
+	GLuint viewMat = glGetUniformLocation(gShaderProgram, "view");
+	GLuint projectionMat = glGetUniformLocation(gShaderProgram, "projection");
+
+	glUniformMatrix4fv(modelMat, 1, GL_FALSE, &modelMatrix[0][0]);
+	glUniformMatrix4fv(viewMat, 1, GL_FALSE, &viewMatrix[0][0]);
+	glUniformMatrix4fv(projectionMat, 1, GL_FALSE, &projectionMatrix[0][0]);
+
 }

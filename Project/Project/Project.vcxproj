@@ -85,13 +85,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FPSCounter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="RenderObject.cpp" />
     <ClCompile Include="RenderWindow.cpp" />
+    <ClCompile Include="Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FPSCounter.hpp" />
     <ClInclude Include="RenderObject.hpp" />
     <ClInclude Include="RenderWindow.hpp" />
+    <ClInclude Include="Scene.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

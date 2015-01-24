@@ -18,8 +18,11 @@ private:
 
 	bool generated;
 
+	float ry = 0;
+
 	GLuint vBuffer;
 	GLuint vArray;
+	GLuint indexBuffer;
 
 	GLuint vs, fs;
 

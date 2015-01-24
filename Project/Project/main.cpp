@@ -80,7 +80,7 @@ int main()
 		// check for events
 		rWindow.update();
 		glfwPollEvents();
-		Sleep(1);
+		Sleep(20);
 	}
 
 	// destroy the window
