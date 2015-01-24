@@ -13,6 +13,7 @@ public:
 	virtual ~renderWindow();
 
 	void createThread();
+	void update();
 
 	bool isThreadRunning() const;
 

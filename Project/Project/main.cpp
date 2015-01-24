@@ -35,9 +35,14 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
-
+	
+	glfwWindowHint(GLFW_VISIBLE, false);
+	GLFWwindow * temp = glfwCreateWindow(1, 1, "", NULL, NULL);
+	glfwWindowHint(GLFW_VISIBLE, true);
 	// create a window with 400 400 in size
-	window = glfwCreateWindow(400, 400, "Title", NULL, NULL);
+	window = glfwCreateWindow(400, 400, "Title", NULL, temp);
+	
+	
 	
 	// if we failed creating a window
 	if (!window)
@@ -62,6 +67,7 @@ int main()
 		fprintf(stderr, "glew initialized");
 	}
 	glfwMakeContextCurrent(NULL);
+	glfwMakeContextCurrent(temp);
 	///
 
 
@@ -71,6 +77,7 @@ int main()
 	while (rWindow.isThreadRunning())
 	{
 		// check for events
+		rWindow.update();
 		glfwPollEvents();
 	}
 

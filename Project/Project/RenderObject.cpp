@@ -4,6 +4,11 @@
 
 renderObject::renderObject()
 {
+	generated = false;
+}
+
+void renderObject::genBuffer()
+{
 
 	const char* vertex_shader = R"(
 		#version 400
@@ -28,15 +33,15 @@ renderObject::renderObject()
 	)";
 
 	//create vertex shader
-	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+	vs = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vs, 1, &vertex_shader, nullptr);
 	glCompileShader(vs);
 
 	//create fragment shader
-	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+	fs = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fs, 1, &fragment_shader, nullptr);
 	glCompileShader(fs);
-	
+
 
 	//link shader program (connect vs and ps)
 	gShaderProgram = glCreateProgram();
@@ -47,38 +52,66 @@ renderObject::renderObject()
 	glDeleteShader(vs);
 	glDeleteShader(fs);
 
+
+	glGenBuffers(1, &vBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
+
+
 	struct TriangleVertex
 	{
 		float x, y, z;
 		float r, g, b;
-	}
-	triangleVertices[3] =
-	{
-		0.0f, 0.5f, 0.0f,	//v0 pos
-		1.0f, 0.0f, 0.0f,	//v0 color
-
-		0.5f, -0.5f, 0.0f,	//v1
-		0.0f, 1.0f, 0.0f,	//v1 color
-
-		-0.5f, -0.5f, 0.0f, //v2
-		0.0f, 0.0f, 1.0f	//v2 color
 	};
 
-	//create buffer and set data
-	glGenBuffers(1, &vBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices), triangleVertices, GL_STATIC_DRAW);
+	TriangleVertex tri[1];
 
-	//define vertex data layout
+	glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_DYNAMIC_DRAW);
+
 	glGenVertexArrays(1, &vArray);
 	glBindVertexArray(vArray);
+
 	glEnableVertexAttribArray(0); //the vertex attribute object will remember its enabled attributes
 	glEnableVertexAttribArray(1);
+
 
 	GLuint vertexPos = glGetAttribLocation(gShaderProgram, "vertex_position");
 	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), BUFFER_OFFSET(0));
 	GLuint vertexColor = glGetAttribLocation(gShaderProgram, "vertex_color");
 	glVertexAttribPointer(vertexColor, 3, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), BUFFER_OFFSET(sizeof(float) * 3));
+
+	generated = true;
+}
+
+void renderObject::fillBuffer()
+{
+	if (generated)
+	{
+		struct TriangleVertex
+		{
+			float x, y, z;
+			float r, g, b;
+		};
+
+		TriangleVertex tri[4] =
+		{
+
+			0.5f, 0.5f, 0.0f,	//v0 pos
+			1.0f, 1.0f, 1.0f, // normal stuff
+
+			0.5f, -0.5f, 0.0f,	//v1
+			0.0f, 0.0f, 1.0f,
+
+			-0.5f, 0.5f, 0.0f, //v2
+			0.0f, 1.0f, 0.0f,
+
+			-0.5f, -0.5f, 0.0f, //v3
+			1.0f, 0.0f, 0.0f
+		};
+		glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_DYNAMIC_DRAW);
+
+		glFlush();
+	}
 }
 
 renderObject::~renderObject()
@@ -92,5 +125,5 @@ void renderObject::render()
 	glBindVertexArray(vArray);
 
 	// draw points 0-3 from the currently bound VAO with current in-use shader
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }

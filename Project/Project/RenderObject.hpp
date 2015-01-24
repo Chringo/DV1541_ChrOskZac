@@ -11,9 +11,17 @@ public:
 
 	void render();
 
+	void genBuffer();
+	void fillBuffer();
+
 private:
+
+	bool generated;
+
 	GLuint vBuffer;
 	GLuint vArray;
+
+	GLuint vs, fs;
 
 	GLuint gShaderProgram;
 };

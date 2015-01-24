@@ -26,6 +26,11 @@ bool renderWindow::isThreadRunning() const
 	return threadRunning;
 }
 
+void renderWindow::update()
+{
+	obj.fillBuffer();
+}
+
 void renderWindow::renderThread()
 {
 	glfwMakeContextCurrent(window);
@@ -33,7 +38,7 @@ void renderWindow::renderThread()
 	glfwSwapInterval(1);
 
 	// not sure why I need to make my object here
-	obj = renderObject();
+	obj.genBuffer();
 
 	while (!glfwWindowShouldClose(window))
 	{
