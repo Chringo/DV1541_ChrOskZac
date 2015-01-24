@@ -3,7 +3,8 @@
 
 #include <GLFW/glfw3.h>
 #include <thread>
-#include "RenderObject.hpp"
+#include "Scene.hpp"
+#include "FPSCounter.hpp"
 
 class renderWindow
 {
@@ -28,7 +29,8 @@ private:
 
 	bool threadRunning;
 
-	renderObject obj;
+	scene mainScene;
+	fpsCounter fpsCount;
 };
 
 #endif
