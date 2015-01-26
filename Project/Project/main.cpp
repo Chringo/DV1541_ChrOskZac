@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "RenderWindow.hpp"
+#define WIN32_LEAN_AND_MEAN
+#undef APIENTRY
 #include <Windows.h>
 
 
@@ -68,6 +70,7 @@ int main()
 		fprintf(stderr, "glew initialized");
 	}
 	glfwMakeContextCurrent(NULL);
+	// temp is the loading/update context
 	glfwMakeContextCurrent(temp);
 	///
 
@@ -80,7 +83,7 @@ int main()
 		// check for events
 		rWindow.update();
 		glfwPollEvents();
-		Sleep(20);
+		Sleep(1000/120);
 	}
 
 	// destroy the window

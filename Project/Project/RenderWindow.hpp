@@ -14,12 +14,16 @@ public:
 	virtual ~renderWindow();
 
 	void createThread();
+
+	// update function
 	void update();
 
+	// check if the thread is running
 	bool isThreadRunning() const;
 
 private:
 
+	// render thread and render function
 	void renderThread();
 	void render();
 
@@ -29,7 +33,10 @@ private:
 
 	bool threadRunning;
 
+	// scene class
 	scene mainScene;
+
+	// fps counter class
 	fpsCounter fpsCount;
 };
 

@@ -2,6 +2,7 @@
 #define RENDEROBJECT_HPP
 
 #include <GL/glew.h>
+#include <glm/glm.hpp>
 
 class renderObject
 {
@@ -11,22 +12,28 @@ public:
 
 	void render();
 
-	void genBuffer();
-	void fillBuffer();
+	void genBuffer(GLuint shader);
+	void update();
+
+	// ability to get the modelmatrix for objects, these are unique
+	const GLfloat * getModelMatrix() const;
 
 private:
+
+	void fillBuffer();
 
 	bool generated;
 
 	float ry = 0;
 
+	// vArray should be moved out from this class
+	// and probably bound to a shader within its own class
+
 	GLuint vBuffer;
 	GLuint vArray;
 	GLuint indexBuffer;
 
-	GLuint vs, fs;
-
-	GLuint gShaderProgram;
+	glm::mat4 modelMatrix;
 };
 
 #endif

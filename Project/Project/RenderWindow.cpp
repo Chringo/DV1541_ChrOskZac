@@ -1,5 +1,7 @@
 #include <GL\glew.h>
 #include "RenderWindow.hpp"
+#define WIN32_LEAN_AND_MEAN
+#undef APIENTRY
 #include <Windows.h>
 
 renderWindow::renderWindow(GLFWwindow* window)
@@ -52,6 +54,9 @@ void renderWindow::renderThread()
 	threadRunning = false;
 }
 
+
+// render function
+// would be possible to have multiple scenes to toggle between
 void renderWindow::render()
 {
 	float ratio;

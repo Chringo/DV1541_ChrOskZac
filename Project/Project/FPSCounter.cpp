@@ -18,7 +18,7 @@ fpsCounter::~fpsCounter()
 std::string fpsCounter::get() const
 {
 	stringstream ss;
-	ss << m_fps;
+	ss << "FPS: " << m_fps;
 	
 	return ss.str();;
 }

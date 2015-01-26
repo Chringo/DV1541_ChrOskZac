@@ -10,7 +10,8 @@ public:
 	fpsCounter();
 	~fpsCounter();
 
-	std::string get() const ;
+	// get fps and tick function
+	std::string get() const;
 	void tick();
 
 private:
@@ -18,6 +19,7 @@ private:
 	unsigned int m_fps = 0;
 	unsigned int m_fpscount = 0;
 
+	// time for when to update fps
 	time_t t;
 	tm now;
 	tm curr;
