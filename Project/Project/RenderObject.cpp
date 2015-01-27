@@ -62,7 +62,7 @@ void renderObject::update()
 		0.0f, 1.0f, 0.0f, 0.0f,
 		sin((glm::pi<float>() / 180)*ry), 0.0f, cos((glm::pi<float>() / 180)*ry), 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f);
-
+	
 	ry += 1.0f;
 
 	fillBuffer();
@@ -83,20 +83,25 @@ void renderObject::fillBuffer()
 			float r, g, b;
 		};
 
-		TriangleVertex tri[4] =
+		TriangleVertex tri[8] =
 		{
+			-0.500000, -0.500000, 0.500000,
+			1, 1, 1,
+			-0.500000, -0.500000, -0.500000,
+			1, 0, 1,
+			0.500000, -0.500000, -0.500000,
+			1, 1, 0,
+			0.500000, -0.500000, 0.500000,
+			0, 1, 1,
+			-0.500000, 0.500000, 0.500000,
+			0, 0, 1,
+			-0.500000, 0.500000, -0.500000,
+			0, 1, 0,
+			0.500000, 0.500000, -0.500000,
+			1, 0, 0,
+			0.500000, 0.500000, 0.500000,
+			0, 0, 0,
 
-			0.5f, 0.5f, 0.0f,	//v0 pos
-			1.0f, 1.0f, 1.0f, // normal stuff
-
-			0.5f, -0.5f, 0.0f,	//v1
-			0.0f, 0.0f, 1.0f,
-
-			-0.5f, 0.5f, 0.0f, //v2
-			0.0f, 1.0f, 0.0f,
-
-			-0.5f, -0.5f, 0.0f, //v3
-			1.0f, 0.0f, 0.0f
 		};
 
 		struct Ind
@@ -104,10 +109,20 @@ void renderObject::fillBuffer()
 			GLshort v1, v2, v3;
 		};
 
-		Ind index[2] =
+		Ind index[12] =
 		{
-			0, 1, 2,
-			1, 2, 3
+			5, 1, 0,
+			6, 2, 1,
+			7, 3, 2,
+			4, 0, 3,
+			1, 2, 3,
+			6, 5, 4,
+			4, 5, 0,
+			5, 6, 1,
+			6, 7, 2,
+			7, 4, 3,
+			0, 1, 3,
+			7, 6, 4
 		};
 
 		glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
@@ -133,7 +148,7 @@ void renderObject::render()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
 	// draw points 0-3 from the currently bound VAO with current in-use shader
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (void*)0);
+	glDrawElements(GL_TRIANGLES, 3*12, GL_UNSIGNED_SHORT, (void*)0);
 
 
 }
