@@ -23,6 +23,8 @@ public:
 
 private:
 
+	double oldx, oldy;
+
 	// render thread and render function
 	void renderThread();
 	void render();

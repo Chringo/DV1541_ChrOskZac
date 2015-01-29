@@ -43,6 +43,11 @@ void scene::renderScene()
 	obj.render();
 }
 
+camera &scene::getCamera()
+{
+	return cam;
+}
+
 // generate the shader
 void scene::generateShader()
 {
@@ -101,13 +106,10 @@ void scene::frameUpdate()
 {
 
 	// update camera
-	viewMatrix = glm::lookAt(
-		glm::vec3(0, 0, 2),
-		glm::vec3(0, 0, 0),
-		glm::vec3(0, 1, 0)
-		);
+	
+	viewMatrix = glm::mat4(cam.rot) * cam.translation;
 
-	projectionMatrix = glm::perspective(glm::pi<float>() * 0.45f, 640.0f / 480.0f, 0.5f, 20.0f);
+	projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, cam.width / cam.height, 0.5f, 100.0f);
 
 	// register new completed objects
 }

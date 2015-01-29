@@ -4,9 +4,12 @@
 #include "RenderObject.hpp"
 #include <vector>
 
+#include "Camera.hpp"
+
 #define GLM_FORCE_RADIANS
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 
 using std::vector;
@@ -24,7 +27,12 @@ public:
 
 	void requestBuffer();
 
+	camera &getCamera();
+
 private:
+
+
+	camera cam;
 
 	void frameUpdate();
 	void generateShader();

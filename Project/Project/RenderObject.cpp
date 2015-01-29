@@ -57,12 +57,15 @@ void renderObject::genBuffer(GLuint shader)
 void renderObject::update()
 {
 
-	modelMatrix = glm::mat4(
+	glm::mat4 rotMatrix = glm::mat4(
 		cos((glm::pi<float>() / 180)*ry), 0.0f, -sin((glm::pi<float>() / 180)*ry), 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
 		sin((glm::pi<float>() / 180)*ry), 0.0f, cos((glm::pi<float>() / 180)*ry), 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f);
 	
+	modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0, 0, -1.0));
+	modelMatrix = modelMatrix * rotMatrix;
+
 	ry += 1.0f;
 
 	fillBuffer();
@@ -106,7 +109,7 @@ void renderObject::fillBuffer()
 
 		struct Ind
 		{
-			GLshort v1, v2, v3;
+			GLushort v1, v2, v3;
 		};
 
 		Ind index[12] =
