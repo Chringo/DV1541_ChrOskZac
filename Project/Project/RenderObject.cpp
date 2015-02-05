@@ -42,7 +42,6 @@ void renderObject::genBuffer(GLuint shader)
 	glEnableVertexAttribArray(1);
 
 
-
 	/// this should be moved out from this class
 	/// as it is bound to shader, and can be used across multiple objects
 	GLuint vertexPos = glGetAttribLocation(shader, "vertex_position");

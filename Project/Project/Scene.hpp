@@ -3,13 +3,12 @@
 
 #include "RenderObject.hpp"
 #include <vector>
-
+#include "GBuffer.hpp"
 #include "Camera.hpp"
 
 #define GLM_FORCE_RADIANS
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 
 using std::vector;
@@ -24,17 +23,21 @@ public:
 	void renderScene();
 	void updateScene();
 
-
-	void requestBuffer();
+	bool requestBuffer(int width, int height);
+	void frameUpdate();
 
 	camera &getCamera();
 
+	void screenChanged();
+
 private:
 
+	bool updateGBuffer;
+	
+	GBuffer gBuffer;
 
 	camera cam;
 
-	void frameUpdate();
 	void generateShader();
 
 	GLuint shaderProgram;

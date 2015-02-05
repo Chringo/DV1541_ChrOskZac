@@ -25,6 +25,8 @@ private:
 
 	double oldx, oldy;
 
+	int windowX, windowY;
+
 	// render thread and render function
 	void renderThread();
 	void render();

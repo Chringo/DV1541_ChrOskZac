@@ -64,7 +64,7 @@ int main()
 	}
 	else
 	{
-		fprintf(stderr, "glew initialized");
+		fprintf(stderr, "glew initialized\n");
 	}
 	glfwMakeContextCurrent(NULL);
 	///

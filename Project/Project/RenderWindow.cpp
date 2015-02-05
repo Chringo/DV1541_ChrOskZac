@@ -33,7 +33,6 @@ bool renderWindow::isThreadRunning() const
 void renderWindow::update()
 {
 	mainScene.updateScene();
-
 	glfwSetWindowTitle(window, fpsCount.get().c_str());
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT))
@@ -55,6 +54,17 @@ void renderWindow::update()
 		oldx = xpos;
 		oldy = ypos;
 	}
+
+	int width, height;
+	glfwGetFramebufferSize(window, &width, &height);
+
+	if (width != windowX || height != windowY)
+	{
+		mainScene.screenChanged();
+		windowX = width;
+		windowY = height;
+	}
+
 
 	glm::vec3 up = mainScene.getCamera().rot * glm::vec3(0.0, 1.0, 0.0);
 	glm::vec3 forward = mainScene.getCamera().rot * glm::vec3(0.0, 0.0, -1.0);
@@ -84,9 +94,10 @@ void renderWindow::renderThread()
 	// enable vsync
 	glfwSwapInterval(1);
 
-	// not sure why I need to make my object here
-
-	mainScene.requestBuffer();
+	// request buffers and init scene
+	int width, height;
+	glfwGetFramebufferSize(window, &width, &height);
+	mainScene.requestBuffer(width, height);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -101,20 +112,12 @@ void renderWindow::renderThread()
 // would be possible to have multiple scenes to toggle between
 void renderWindow::render()
 {
-	float ratio;
 	int width, height;
-
 	glfwGetFramebufferSize(window, &width, &height);
-	ratio = width / (float)height;
 
 	glViewport(0, 0, width, height);
 	mainScene.getCamera().height = (float)height;
 	mainScene.getCamera().width = (float)width;
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
-
-
 	mainScene.renderScene();
 
 	glfwSwapBuffers(window);
