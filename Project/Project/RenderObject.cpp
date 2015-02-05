@@ -52,6 +52,7 @@ void renderObject::genBuffer(GLuint shader)
 	/// 
 
 	generated = true;
+	fillBuffer();
 }
 
 void renderObject::update()
@@ -68,7 +69,6 @@ void renderObject::update()
 
 	ry += 1.0f;
 
-	fillBuffer();
 }
 
 const GLfloat * renderObject::getModelMatrix() const

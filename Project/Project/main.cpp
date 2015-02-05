@@ -39,11 +39,8 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 	
-	glfwWindowHint(GLFW_VISIBLE, false);
-	GLFWwindow * temp = glfwCreateWindow(1, 1, "", NULL, NULL);
-	glfwWindowHint(GLFW_VISIBLE, true);
 	// create a window with 400 400 in size
-	window = glfwCreateWindow(400, 400, "Title", NULL, temp);
+	window = glfwCreateWindow(400, 400, "Title", NULL, NULL);
 	
 	
 	
@@ -70,8 +67,6 @@ int main()
 		fprintf(stderr, "glew initialized");
 	}
 	glfwMakeContextCurrent(NULL);
-	// temp is the loading/update context
-	glfwMakeContextCurrent(temp);
 	///
 
 
@@ -88,7 +83,6 @@ int main()
 
 	// destroy the window
 	glfwDestroyWindow(window);
-	glfwDestroyWindow(temp);
 
 	// free resources the library have used
 	glfwTerminate();
