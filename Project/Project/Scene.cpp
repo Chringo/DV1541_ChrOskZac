@@ -1,6 +1,7 @@
 #include "Scene.hpp"
 #include <iostream>
 #include <sstream>
+#include <windows.h>
 
 void CheckShader(GLuint shader)
 {
@@ -104,7 +105,7 @@ camera &scene::getCamera()
 void scene::generateShader()
 {
 	const char* vertex_shader = R"(
-		#version 400
+		#version 430
 		layout(location = 0) in vec3 vertex_position;
 		layout(location = 1) in vec3 vertex_color;
 		
@@ -121,7 +122,7 @@ void scene::generateShader()
 	)";
 
 	const char* geometry_shader = R"(
-		#version 400
+		#version 430
 		layout (triangles) in;
 		layout (triangle_strip) out;
 		layout (max_vertices = 3) out;
@@ -144,7 +145,7 @@ void scene::generateShader()
 	)";
 
 	const char* fragment_shader = R"(
-		#version 400
+		#version 430
 		in vec3 color;
 		in vec3 normal;
 		//out vec4 fragment_color;
@@ -153,8 +154,8 @@ void scene::generateShader()
 
 		void main () {
 			//fragment_color = vec4 (color, 1.0);
-			
-			diffuseOut = color;
+			//diffuseOut = color;
+			diffuseOut = normalize(normal);
 		}
 	)";
 
@@ -164,17 +165,50 @@ void scene::generateShader()
 	glCompileShader(vs);
 	CheckShader(vs);
 
+	//debug info regarding vertex shader compilation
+	GLint vertex_compiled;
+	glGetShaderiv(vs, GL_COMPILE_STATUS, &vertex_compiled);
+	if (vertex_compiled != GL_TRUE)
+	{
+		GLsizei log_length = 0;
+		GLchar message[1024];
+		glGetShaderInfoLog(vs, 1024, &log_length, message);
+		OutputDebugStringA(message);
+	}
+
 	//create vertex shader
 	GLuint gs = glCreateShader(GL_GEOMETRY_SHADER);
 	glShaderSource(gs, 1, &geometry_shader, nullptr);
 	glCompileShader(gs);
 	CheckShader(gs);
 
+	//debug info regarding geometry shader compilation
+	GLint geometry_compiled;
+	glGetShaderiv(gs, GL_COMPILE_STATUS, &geometry_compiled);
+	if (geometry_compiled != GL_TRUE)
+	{
+		GLsizei log_length = 0;
+		GLchar message[1024];
+		glGetShaderInfoLog(gs, 1024, &log_length, message);
+		OutputDebugStringA(message);
+	}
+
 	//create fragment shader
 	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fs, 1, &fragment_shader, nullptr);
 	glCompileShader(fs);
 	CheckShader(fs);
+
+	//debuf info regarding fragment shader compilation
+	GLint fragment_compiled;
+	glGetShaderiv(fs, GL_COMPILE_STATUS, &fragment_compiled);
+	if (fragment_compiled != GL_TRUE)
+	{
+		GLsizei log_length = 0;
+		GLchar message[1024];
+		glGetShaderInfoLog(fs, 1024, &log_length, message);
+		OutputDebugStringA(message);
+	}
 
 	//link shader program (connect vs and ps)
 	shaderProgram = glCreateProgram();
@@ -183,35 +217,20 @@ void scene::generateShader()
 	glAttachShader(shaderProgram, vs);
 	glLinkProgram(shaderProgram);
 
+	//debug info regarding linking
+	GLint linked;
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linked);
+	if (linked != GL_TRUE)
+	{
+		GLsizei log_length = 0;
+		GLchar message[1024];
+		glGetProgramInfoLog(shaderProgram, 1024, &log_length, message);
+		OutputDebugStringA(message);
+	}
+
 	glDeleteShader(vs);
 	glDeleteShader(gs);
 	glDeleteShader(fs);
-
-
-	GLint isCompiled = 0;
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &isCompiled);
-
-	if (isCompiled == GL_FALSE)
-	{
-		GLint maxLength = 0;
-		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
-
-		// The maxLength includes the NULL character
-		std::vector<GLchar> errorLog(maxLength);
-		glGetProgramInfoLog(shaderProgram, maxLength, &maxLength, &errorLog[0]);
-
-		std::stringstream ss;
-		for (int i = 0; i < maxLength; i++)
-		{
-			ss << errorLog[i];
-		}
-		std::cout << ss.str() << std::endl;
-		// Provide the infolog in whatever manor you deem best.
-		// Exit with failure.
-		glDeleteProgram(shaderProgram); // Don't leak the shader.
-		return;
-	}
-
 }
 
 void scene::screenChanged()
