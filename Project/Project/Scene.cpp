@@ -112,24 +112,48 @@ void scene::generateShader()
 		uniform mat4 view;
 		uniform mat4 projection;
 
-
-		out vec3 color;
+		out vec3 colorG;
 		
 		void main () {
-			color = vertex_color;
+			colorG = vertex_color;
 			gl_Position = projection * view * model * vec4 (vertex_position, 1.0);
+		}
+	)";
+
+	const char* geometry_shader = R"(
+		#version 400
+		layout (triangles) in;
+		layout (triangle_strip) out;
+		layout (max_vertices = 3) out;
+		in vec3 colorG[];
+
+		out vec3 color;
+		out vec3 normal;
+
+		void main () {
+			normal = normalize( cross( vec3( gl_in[1].gl_Position - gl_in[0].gl_Position ), vec3( gl_in[2].gl_Position - gl_in[0].gl_Position) ) );
+
+			for( int i = 0; i < 3; i++ )
+			{
+				gl_Position = gl_in[i].gl_Position;
+				color = colorG[i];
+				EmitVertex();
+			}
+			EndPrimitive();
 		}
 	)";
 
 	const char* fragment_shader = R"(
 		#version 400
 		in vec3 color;
+		in vec3 normal;
 		//out vec4 fragment_color;
 
 		layout (location = 0) out vec3 diffuseOut; 
 
 		void main () {
 			//fragment_color = vec4 (color, 1.0);
+			
 			diffuseOut = color;
 		}
 	)";
@@ -140,6 +164,12 @@ void scene::generateShader()
 	glCompileShader(vs);
 	CheckShader(vs);
 
+	//create vertex shader
+	GLuint gs = glCreateShader(GL_GEOMETRY_SHADER);
+	glShaderSource(gs, 1, &geometry_shader, nullptr);
+	glCompileShader(gs);
+	CheckShader(gs);
+
 	//create fragment shader
 	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fs, 1, &fragment_shader, nullptr);
@@ -149,10 +179,12 @@ void scene::generateShader()
 	//link shader program (connect vs and ps)
 	shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, fs);
+	glAttachShader(shaderProgram, gs);
 	glAttachShader(shaderProgram, vs);
 	glLinkProgram(shaderProgram);
 
 	glDeleteShader(vs);
+	glDeleteShader(gs);
 	glDeleteShader(fs);
 
 
