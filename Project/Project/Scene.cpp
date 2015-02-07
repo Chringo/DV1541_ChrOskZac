@@ -92,7 +92,7 @@ void scene::renderScene()
 	
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	
-	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, 0, 0, (GLint)cam.width/2, (GLint)cam.height/2, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, 0, 0, (GLint)cam.width*0.5, (GLint)cam.height*0.5, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	
 }
 
@@ -114,9 +114,11 @@ void scene::generateShader()
 		uniform mat4 projection;
 
 		out vec3 colorG;
+		out vec3 worldPosG;
 		
 		void main () {
 			colorG = vertex_color;
+			worldPosG = (model * vec4(vertex_position, 1.0)).xyz;
 			gl_Position = projection * view * model * vec4 (vertex_position, 1.0);
 		}
 	)";
@@ -127,9 +129,11 @@ void scene::generateShader()
 		layout (triangle_strip) out;
 		layout (max_vertices = 3) out;
 		in vec3 colorG[];
+		in vec3 worldPosG[];
 
 		out vec3 color;
 		out vec3 normal;
+		out vec3 worldPos;
 
 		void main () {
 			normal = normalize( cross( vec3( gl_in[1].gl_Position - gl_in[0].gl_Position ), vec3( gl_in[2].gl_Position - gl_in[0].gl_Position) ) );
@@ -138,6 +142,7 @@ void scene::generateShader()
 			{
 				gl_Position = gl_in[i].gl_Position;
 				color = colorG[i];
+				worldPos = worldPosG[i];
 				EmitVertex();
 			}
 			EndPrimitive();
@@ -148,6 +153,8 @@ void scene::generateShader()
 		#version 430
 		in vec3 color;
 		in vec3 normal;
+		in vec3 worldPos;
+
 		//out vec4 fragment_color;
 
 		layout (location = 0) out vec3 diffuseOut; 
@@ -155,7 +162,8 @@ void scene::generateShader()
 		void main () {
 			//fragment_color = vec4 (color, 1.0);
 			//diffuseOut = color;
-			diffuseOut = normalize(normal);
+			//diffuseOut = normalize(normal);
+			diffuseOut = worldPos;
 		}
 	)";
 
