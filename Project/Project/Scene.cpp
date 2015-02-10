@@ -91,9 +91,11 @@ void scene::renderScene()
 	gBuffer.bindRead();
 	
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
-	
-	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, 0, 0, (GLint)cam.width*0.5, (GLint)cam.height*0.5, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	
+	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, 0, 0, (GLint)cam.width, (GLint)cam.height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glReadBuffer(GL_COLOR_ATTACHMENT1);
+	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, 0, 0, (GLint)cam.width/5, (GLint)cam.height/5, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glReadBuffer(GL_COLOR_ATTACHMENT2);
+	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, (GLint)cam.width / 5, 0, 2*(GLint)cam.width / 5, (GLint)cam.height / 5, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 }
 
 camera &scene::getCamera()
@@ -108,18 +110,16 @@ void scene::generateShader()
 		#version 430
 		layout(location = 0) in vec3 vertex_position;
 		layout(location = 1) in vec3 vertex_color;
-		
-		uniform mat4 model;
-		uniform mat4 view;
-		uniform mat4 projection;
 
 		out vec3 colorG;
 		out vec3 worldPosG;
 		
 		void main () {
 			colorG = vertex_color;
-			worldPosG = (model * vec4(vertex_position, 1.0)).xyz;
-			gl_Position = projection * view * model * vec4 (vertex_position, 1.0);
+			//worldPosG = (model * vec4(vertex_position, 1.0)).xyz;
+			//gl_Position = projection * view * model * vec4 (vertex_position, 1.0);
+			gl_Position = vec4 (vertex_position, 1.0);
+			worldPosG = vertex_position;
 		}
 	)";
 
@@ -128,6 +128,11 @@ void scene::generateShader()
 		layout (triangles) in;
 		layout (triangle_strip) out;
 		layout (max_vertices = 3) out;
+
+		uniform mat4 model;
+		uniform mat4 view;
+		uniform mat4 projection;
+
 		in vec3 colorG[];
 		in vec3 worldPosG[];
 
@@ -136,13 +141,18 @@ void scene::generateShader()
 		out vec3 worldPos;
 
 		void main () {
-			normal = normalize( cross( vec3( gl_in[1].gl_Position - gl_in[0].gl_Position ), vec3( gl_in[2].gl_Position - gl_in[0].gl_Position) ) );
+
+			//normal = (model * vec4(normalize( cross( vec3(gl_in[1].gl_Position - gl_in[0].gl_Position ), vec3(vec3(gl_in[2].gl_Position -gl_in[0].gl_Position) ) ) ),0.0f )).xyz;
+
+			normal = normalize (cross( vec3(gl_in[1].gl_Position - gl_in[0].gl_Position ), vec3( vec3( gl_in[2].gl_Position - gl_in[0].gl_Position ) ) ) );
+
+			normal = (model * vec4(normal, 1.0f)).xyz;
 
 			for( int i = 0; i < 3; i++ )
 			{
-				gl_Position = gl_in[i].gl_Position;
+				gl_Position =  projection * view * model * gl_in[i].gl_Position;
 				color = colorG[i];
-				worldPos = worldPosG[i];
+				worldPos = (model * vec4(worldPosG[i], 1.0f)).xyz;
 				EmitVertex();
 			}
 			EndPrimitive();
@@ -158,12 +168,14 @@ void scene::generateShader()
 		//out vec4 fragment_color;
 
 		layout (location = 0) out vec3 diffuseOut; 
+		layout (location = 1) out vec3 normalOut; 
+		layout (location = 2) out vec3 worldOut; 
 
 		void main () {
 			//fragment_color = vec4 (color, 1.0);
-			//diffuseOut = color;
-			//diffuseOut = normalize(normal);
-			diffuseOut = worldPos;
+			diffuseOut = color;
+			normalOut = normalize(normal);
+			worldOut = worldPos;
 		}
 	)";
 

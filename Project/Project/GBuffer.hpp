@@ -21,6 +21,8 @@ private:
 
 	GLuint fbo;
 	GLuint diffuseTexture;
+	GLuint normalTexture;
+	GLuint worldPosTexture;
 	GLuint depthTexture;
 };
 
