@@ -93,9 +93,9 @@ void scene::renderScene()
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, 0, 0, (GLint)cam.width, (GLint)cam.height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	glReadBuffer(GL_COLOR_ATTACHMENT1);
-	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, 0, 0, (GLint)cam.width/5, (GLint)cam.height/5, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, 0, 0, (GLint)cam.width * 0.2, (GLint)cam.height * 0.2, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 	glReadBuffer(GL_COLOR_ATTACHMENT2);
-	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, (GLint)cam.width / 5, 0, 2*(GLint)cam.width / 5, (GLint)cam.height / 5, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, (GLint)cam.width * 0.2, 0, 2 * (GLint)cam.width * 0.2, (GLint)cam.height * 0.2, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 }
 
 camera &scene::getCamera()
