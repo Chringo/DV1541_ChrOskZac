@@ -29,10 +29,12 @@ public:
 	camera &getCamera();
 
 	void screenChanged();
+	void queueReloadShader();
 
 private:
 
 	bool updateGBuffer;
+	bool reloadShader;
 	
 	GBuffer gBuffer;
 

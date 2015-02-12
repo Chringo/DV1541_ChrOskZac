@@ -27,7 +27,6 @@ void renderObject::genBuffer(GLuint shader)
 
 	glGenBuffers(1, &vBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
-
 	glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_DYNAMIC_DRAW);
 
 	glGenBuffers(1, &indexBuffer);

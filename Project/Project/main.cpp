@@ -8,7 +8,6 @@
 #include <Windows.h>
 
 
-
 // error callback function
 static void error_callback(int error, const char* description)
 {
@@ -21,7 +20,6 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 }
-
 // main crap
 int main()
 {
@@ -37,12 +35,12 @@ int main()
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 	
 	// create a window with 400 400 in size
 	window = glfwCreateWindow(400, 400, "Title", NULL, NULL);
-	
-	
 	
 	// if we failed creating a window
 	if (!window)
@@ -56,6 +54,7 @@ int main()
 
 	/// this is needed for glewinit
 	glfwMakeContextCurrent(window);
+	glewExperimental = true;
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
@@ -78,7 +77,7 @@ int main()
 		// check for events
 		rWindow.update();
 		glfwPollEvents();
-		Sleep(1000/120);
+		Sleep(1000/60);
 	}
 
 	// destroy the window
