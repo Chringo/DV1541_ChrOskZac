@@ -14,7 +14,8 @@ extern "C"
 		GLenum severity,
 		GLsizei length,
 		const GLchar* message,
-		void* userParam){
+		void* userParam)
+	{
 
 		std::cout << "---------------------opengl-callback-start------------" << std::endl;
 		std::cout << "message: " << message << std::endl;
@@ -89,7 +90,7 @@ bool renderWindow::isThreadRunning() const
 
 void renderWindow::update()
 {
-	mainScene.updateScene();
+
 	glfwSetWindowTitle(window, fpsCount.get().c_str());
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT))
@@ -148,6 +149,14 @@ void renderWindow::update()
 	{
 		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, strafe*glm::vec3(-0.1f, 0, 0.1));
 	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, glm::vec3(0.0f, -0.1f, 0.0f));
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+	{
+		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, glm::vec3(0.0f, 0.1f, 0.0f));
+	}
 }
 
 void renderWindow::renderThread()
@@ -176,7 +185,7 @@ void renderWindow::renderThread()
 
 
 	// enable vsync
-	glfwSwapInterval(1);
+	glfwSwapInterval(-1);
 
 	// request buffers and init scene
 	int width, height;
@@ -202,6 +211,7 @@ void renderWindow::render()
 	glViewport(0, 0, width, height);
 	mainScene.getCamera().height = (float)height;
 	mainScene.getCamera().width = (float)width;
+	mainScene.updateScene();
 	mainScene.renderScene();
 
 	glfwSwapBuffers(window);

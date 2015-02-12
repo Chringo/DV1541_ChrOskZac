@@ -18,13 +18,13 @@ scene::~scene()
 // create shader and object buffers
 bool scene::requestBuffer(int width, int height)
 {
+	generateShader();
 
 	if (gBuffer.init(400, 400))
 	{
 		fprintf(stdout, "Created framebuffer\n");
 	}
 
-	generateShader();
 	obj.genBuffer(shaderProgram);
 
 	return true;
@@ -45,7 +45,6 @@ void scene::renderScene()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	
-
 	glUseProgram(shaderProgram);
 
 	GLuint modelMat = glGetUniformLocation(shaderProgram, "model");
@@ -63,14 +62,22 @@ void scene::renderScene()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	gBuffer.bindRead();
 	
+	gBuffer.draw();
+
+	gBuffer.bindRead();
 	glReadBuffer(GL_COLOR_ATTACHMENT0);
-	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, 0, 0, (GLint)cam.width, (GLint)cam.height, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	glReadBuffer(GL_COLOR_ATTACHMENT1);
 	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, 0, 0, (GLint)cam.width/5, (GLint)cam.height/5, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	glReadBuffer(GL_COLOR_ATTACHMENT2);
+	glReadBuffer(GL_COLOR_ATTACHMENT1);
 	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, (GLint)cam.width / 5, 0, 2*(GLint)cam.width / 5, (GLint)cam.height / 5, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	glReadBuffer(GL_COLOR_ATTACHMENT2);
+	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, 2*(GLint)cam.width / 5, 0, 3 * (GLint)cam.width / 5, (GLint)cam.height / 5, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+	gBuffer.bindLightRead();
+
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glBlitFramebuffer(0, 0, (GLint)cam.width, (GLint)cam.height, 3 * (GLint)cam.width / 5, 0, 4 * (GLint)cam.width / 5, (GLint)cam.height / 5, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	
 }
 
 camera &scene::getCamera()
@@ -94,6 +101,34 @@ void scene::generateShader()
 		}
 		shaderProgram = program;
 	}
+
+	std::string shader[] = { "shaders/quad_vs.glsl", "shaders/quad_fs.glsl" };
+	GLenum shadeType[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+
+	program = 0;
+
+	if (CreateProgram(program, shader, shadeType, 2))
+	{
+		if (gBuffer.combineShader != 0)
+		{
+			glDeleteProgram(gBuffer.combineShader);
+		}
+		gBuffer.combineShader = program;
+	}
+
+	shader[1] = "shaders/light_fs.glsl";
+
+	program = 0;
+
+	if (CreateProgram(program, shader, shadeType, 2))
+	{
+		if (gBuffer.lightShader != 0)
+		{
+			glDeleteProgram(gBuffer.lightShader);
+		}
+		gBuffer.lightShader = program;
+	}
+
 }
 
 void scene::screenChanged()

@@ -9,10 +9,9 @@ layout (location = 0) out vec3 diffuseOut;
 layout (location = 1) out vec3 normalOut; 
 layout (location = 2) out vec3 worldOut; 
 
-void main () {
-	//fragment_color = vec4 (color, 1.0);
+void main ()
+{
 	diffuseOut = color;
 	normalOut = normalize(normal);
 	worldOut = worldPos;
-	
-	}
+}
