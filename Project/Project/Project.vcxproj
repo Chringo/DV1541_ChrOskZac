@@ -93,6 +93,7 @@
   <ItemGroup>
     <ClCompile Include="FPSCounter.cpp" />
     <ClCompile Include="GBuffer.cpp" />
+    <ClCompile Include="heightMap.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ReadShader.cpp" />
     <ClCompile Include="RenderObject.cpp" />
@@ -103,6 +104,7 @@
     <ClInclude Include="Camera.hpp" />
     <ClInclude Include="FPSCounter.hpp" />
     <ClInclude Include="GBuffer.hpp" />
+    <ClInclude Include="heightMap.hpp" />
     <ClInclude Include="ReadShader.hpp" />
     <ClInclude Include="RenderObject.hpp" />
     <ClInclude Include="RenderWindow.hpp" />

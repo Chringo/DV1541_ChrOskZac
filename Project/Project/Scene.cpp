@@ -161,8 +161,8 @@ void scene::frameUpdate()
 	// update camera
 	
 	viewMatrix = glm::mat4(cam.rot) * cam.translation;
-
-	projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, cam.width / cam.height, 0.01f, 100.0f);
+	projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, (cam.width / cam.height), 1.0f, 100.0f);
 
 	// register new completed objects
+	///
 }

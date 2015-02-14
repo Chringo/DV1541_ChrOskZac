@@ -15,8 +15,6 @@ public:
 
 	float width, height;
 
-	float divHeight;		// Replaces division for multiplication.
-
 	glm::mat4 translation;
 	glm::mat3 rot;
 

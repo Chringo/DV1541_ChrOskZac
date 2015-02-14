@@ -1,11 +1,12 @@
-#include <GL\glew.h>
-#include <GLFW\glfw3.h>
+#include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <GL\glew.h>
+#include <GLFW\glfw3.h>
 #include "RenderWindow.hpp"
 #define WIN32_LEAN_AND_MEAN
 #undef APIENTRY
-#include <Windows.h>
 
 
 // error callback function
@@ -49,7 +50,7 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
-	// when a key is pressed can this function
+	// Sets the key callback of the specified window, which is called when a key is used
 	glfwSetKeyCallback(window, key_callback);
 
 	/// this is needed for glewinit

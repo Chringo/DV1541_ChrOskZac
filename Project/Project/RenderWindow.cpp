@@ -196,7 +196,7 @@ void renderWindow::renderThread()
 	{
 		render();
 		fpsCount.tick();
-		Sleep(1000 / 60);
+		Sleep(1000 / 120);
 	}
 	threadRunning = false;
 }
