@@ -185,7 +185,7 @@ void GBuffer::draw()
 	pos = glGetUniformLocation(combineShader, "lightMap");
 	glProgramUniform1i(combineShader, pos, 1);
 	
-	// drwa quad, on backbugffer
+	// draw quad, on backbuffer
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
