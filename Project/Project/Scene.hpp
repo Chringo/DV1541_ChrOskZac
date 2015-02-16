@@ -5,6 +5,7 @@
 #include <vector>
 #include "GBuffer.hpp"
 #include "Camera.hpp"
+#include "heightMap.hpp"
 
 #define GLM_FORCE_RADIANS
 #include <glm\glm.hpp>
@@ -37,6 +38,8 @@ private:
 	bool reloadShader;
 	
 	GBuffer gBuffer;
+
+	heightMap hMap;
 
 	camera cam;
 
