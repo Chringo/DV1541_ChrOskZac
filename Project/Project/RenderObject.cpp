@@ -5,52 +5,42 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 
+// Because of obj loading
+#include <fstream>
+
 #define BUFFER_OFFSET(i) ((char *)nullptr + (i))
 
 renderObject::renderObject()
 {
 	modelMatrix = glm::mat4(1.0);
-
-	generated = false;
 }
 
 void renderObject::genBuffer(GLuint shader)
 {
-
-	struct TriangleVertex
-	{
-		float x, y, z;
-		float r, g, b;
-	};
-
-	TriangleVertex tri[1];
+	// Read our .obj file
+	std::vector< myVec3 > vertices;
+	std::vector< myVec2 > uvs; // Not used
+	std::vector< myVec3 > normals; // Not used
+	std::vector< IndexContainer > indexes;
+	
+	bool res = loadOBJ("Cone.obj", vertices, uvs, normals, indexes);
 
 	glGenBuffers(1, &vBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(myVec3), &vertices[0], GL_DYNAMIC_DRAW);
 
-	glGenBuffers(1, &indexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(tri), tri, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.size() * sizeof(IndexContainer), &indexes[0], GL_DYNAMIC_DRAW);
 
 	glGenVertexArrays(1, &vArray);
 	glBindVertexArray(vArray);
 
 	glEnableVertexAttribArray(0); //the vertex attribute object will remember its enabled attributes
-	glEnableVertexAttribArray(1);
-
-
-	/// this should be moved out from this class
-	/// as it is bound to shader, and can be used across multiple objects
+	
 	GLuint vertexPos = glGetAttribLocation(shader, "vertex_position");
-	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), BUFFER_OFFSET(0));
-	GLuint vertexColor = glGetAttribLocation(shader, "vertex_color");
-	glVertexAttribPointer(vertexColor, 3, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), BUFFER_OFFSET(sizeof(float) * 3));
-	/// 
+	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(myVec3), BUFFER_OFFSET(0));
 
-	generated = true;
-	fillBuffer();
+	glFlush();
 }
 
 void renderObject::update()
@@ -74,66 +64,67 @@ const GLfloat * renderObject::getModelMatrix() const
 	return &modelMatrix[0][0];
 }
 
-void renderObject::fillBuffer()
+bool renderObject::loadOBJ(const char * path, std::vector < myVec3 > & out_vertices, std::vector < myVec2 > & out_uvs, std::vector < myVec3 > & out_normals, std::vector <IndexContainer> & out_indexes)
 {
-	if (generated)
+
+	//Open file
+	FILE * file;
+	fopen_s(&file, path, "r");
+
+	if (file == NULL)
 	{
-		struct TriangleVertex
-		{
-			float x, y, z;
-			float r, g, b;
-		};
-
-		TriangleVertex tri[8] =
-		{
-			-0.500000, -0.500000, 0.500000,
-			1, 1, 1,
-			-0.500000, -0.500000, -0.500000,
-			1, 0, 1,
-			0.500000, -0.500000, -0.500000,
-			1, 1, 0,
-			0.500000, -0.500000, 0.500000,
-			0, 1, 1,
-			-0.500000, 0.500000, 0.500000,
-			0, 0, 1,
-			-0.500000, 0.500000, -0.500000,
-			0, 1, 0,
-			0.500000, 0.500000, -0.500000,
-			1, 0, 0,
-			0.500000, 0.500000, 0.500000,
-			0, 0, 0,
-
-		};
-
-		struct Ind
-		{
-			GLushort v1, v2, v3;
-		};
-
-		Ind index[12] =
-		{
-			5, 1, 0,
-			6, 2, 1,
-			7, 3, 2,
-			4, 0, 3,
-			1, 2, 3,
-			6, 5, 4,
-			4, 5, 0,
-			5, 6, 1,
-			6, 7, 2,
-			7, 4, 3,
-			0, 1, 3,
-			7, 6, 4
-		};
-
-		glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_DYNAMIC_DRAW);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index), index, GL_DYNAMIC_DRAW);
-
-		glFlush();
+		printf("Impossible to open the file !\n");
+		return false;
 	}
+
+	while (1){
+
+		char lineHeader[128];
+		// read the first word of the line
+		int res = fscanf_s(file, "%s", lineHeader);
+		if (res == EOF) break; // EOF = End Of File. Quit the loop.
+
+		if (strcmp(lineHeader, "v") == 0)
+		{
+			// Push vertices into vector < myVec3 >
+
+			myVec3 vertex;
+			fscanf_s(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
+			out_vertices.push_back(vertex);
+		}
+		else if (strcmp(lineHeader, "vt") == 0)
+		{
+			// Push uvs into vector < myVec2 >
+
+			myVec2 uv;
+			fscanf_s(file, "%f %f\n", &uv.x, &uv.y);
+			out_uvs.push_back(uv);
+		}
+		else if (strcmp(lineHeader, "vn") == 0)
+		{
+			// Push normals into vector < myVec3 >
+
+			myVec3 normal;
+			fscanf_s(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+			out_normals.push_back(normal);
+		}
+		else if (strcmp(lineHeader, "f") == 0)
+		{
+			// Push faces into vector < IndexContainer >
+
+			std::string vertex1, vertex2, vertex3;
+			IndexContainer ic;
+			int matches = fscanf_s(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &ic.v1, &ic.vt1, &ic.vn1, &ic.v2, &ic.vt2, &ic.vn2, &ic.v3, &ic.vt3, &ic.vn3);
+			if (matches != 9){
+				printf("File can't be read by our simple parser : ( Try exporting with other options\n");
+				return false;
+			}
+			out_indexes.push_back(ic);
+		}
+	}
+
+	//Succes!
+	return true;
 }
 
 renderObject::~renderObject()
