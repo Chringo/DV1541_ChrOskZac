@@ -21,25 +21,31 @@ public:
 	const GLfloat * getModelMatrix() const;
 
 private:
+	struct objBuffer
+	{
+		GLfloat vertices[3];
+		//GLfloat uvs[2];
+		GLfloat vns[3];
+	};
 	struct myVec3
 	{
-		GLfloat x, y, z;
+		GLfloat pos[3];
 	};
 	struct myVec2
 	{
-		GLfloat x, y;
+		GLfloat pos[2];
 	};
 	struct IndexContainer
 	{
-		GLushort v1, v2, v3;
-		GLushort vt1, vt2, vt3; 
-		GLushort vn1, vn2, vn3;
+		GLuint v1, v2, v3;
+		//GLushort vt1, vt2, vt3; 
+		GLuint vn1, vn2, vn3;
 	};
 
 
-	bool loadOBJ(const char * path, std::vector < myVec3 > & out_vertices, std::vector < myVec2 > & out_uvs, std::vector < myVec3 > & out_normals, std::vector <IndexContainer> & out_indexes);
+	bool loadOBJ(const char * path, std::vector < objBuffer > & out_objVec, std::vector <IndexContainer> & out_indexes);
 
-	bool generated;
+	GLuint indexSize;
 
 	float ry = 0;
 
