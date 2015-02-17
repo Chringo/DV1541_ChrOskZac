@@ -36,7 +36,7 @@
     <ClCompile Include="ReadShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="heightMap.cpp">
+    <ClCompile Include="HeightMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,7 +62,7 @@
     <ClInclude Include="ReadShader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="heightMap.hpp">
+    <ClInclude Include="HeightMap.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

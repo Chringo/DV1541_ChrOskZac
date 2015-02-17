@@ -5,7 +5,7 @@
 #include <vector>
 #include "GBuffer.hpp"
 #include "Camera.hpp"
-#include "heightMap.hpp"
+#include "HeightMap.hpp"
 
 #define GLM_FORCE_RADIANS
 #include <glm\glm.hpp>
@@ -39,7 +39,7 @@ private:
 	
 	GBuffer gBuffer;
 
-	heightMap hMap;
+	HeightMap hMap;
 
 	camera cam;
 

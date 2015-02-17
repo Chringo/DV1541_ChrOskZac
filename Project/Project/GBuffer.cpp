@@ -187,6 +187,7 @@ void GBuffer::draw()
 	
 	// draw quad, on backbuffer
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void GBuffer::bindDraw()

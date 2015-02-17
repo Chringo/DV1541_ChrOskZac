@@ -10,6 +10,6 @@ out vec4 fragment_color;
 void main () {
 	vec4 diffuse_color = texture(diffuse, vertex_texCoord0);
 	vec4 light_color = texture(lightMap, vertex_texCoord0);
-	fragment_color = diffuse_color * (light_color + 0.1f);
+	fragment_color = diffuse_color * (light_color + 0.5f);
 	//fragment_color = light_color;
 }

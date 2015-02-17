@@ -1,23 +1,25 @@
-#include "heightMap.hpp"
+#include "HeightMap.hpp"
 
+#include <errno.h>
 
-heightMap::heightMap()
+HeightMap::HeightMap()
 {
 	width = 1024;
 	height = 1024;
 	mapSize = width * height;
-	quadSize = 16;
+	quadSize = 4;
+	g_HeightMap = new unsigned char[mapSize];
 }
-heightMap::~heightMap()
+HeightMap::~HeightMap()
 {
-	
+	delete g_HeightMap;
 }
 
-bool heightMap::loadRawFile(char* fileName)
+bool HeightMap::loadRawFile(char* fileName)
 {
 	bool loadFromFile = true;
 	FILE* file = nullptr;
-	
+
 	// Opens the file in Read/Binary mode.
 	file = fopen(fileName, "rb");
 
@@ -29,10 +31,65 @@ bool heightMap::loadRawFile(char* fileName)
 
 		// Check for data error
 		int result = ferror(file);
+		result = errno;
 		if (result)
 		{
-			// Reading failed
+			// Reading failed - check errno.h
+			// https://msdn.microsoft.com/en-us/library/t3ayayh1.aspx
 			loadFromFile = false;
+		}
+		else
+		{
+			glGenBuffers(1, &dataMap);
+			glBindBuffer(GL_ARRAY_BUFFER, dataMap);
+			struct vertexMap
+			{
+				float x, y, z;
+				float r, g, b;
+			};
+			const int i = 1024 / 4;
+			vertexMap* vMap = new vertexMap[i*i];
+
+			int x, y, z;		// For readability/visuality (Where the map is in the dimension)
+			int vCount = 0;
+			for (int _w = 0; _w < width/4; _w += quadSize) //_width of map
+			{
+				for (int _h = 0; _h < height/4; _h += quadSize) //_height of map
+				{
+					// Get (X, Y, Z) value for bottom left vertex
+					x = _w;
+					y = getHeight(_w * 4, _h * 4);
+					z = _h;
+					vMap[vCount] = vertexMap{ x, y, z, 0, 0, 0 };
+					vCount++;
+
+					// Get (X, Y, Z) value for top left vertex
+					x = _w;
+					y = getHeight(_w * 4, _h * 4 + quadSize);
+					z = _h + quadSize;
+					vMap[vCount] = vertexMap{ x, y, z, 0, 0, 0 };
+					vCount++;
+
+					// Get (X, Y, Z) value for top right vertex
+					x = _w + quadSize;
+					y = getHeight(_w * 4 + quadSize, _h * 4 + quadSize);
+					z = _h + quadSize;
+					vMap[vCount] = vertexMap{ x, y, z, 0, 0, 0 };
+					vCount++;
+
+					// Get (X, Y, Z) value for bottom right vertex
+					x = _w + quadSize;
+					y = getHeight(_w * 4 + quadSize, _h * 4);
+					z = _h;
+					vMap[vCount] = vertexMap{ x, y, z, 0, 0, 0 };
+					vCount++;
+				}
+			}
+
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vMap), &vMap, GL_DYNAMIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			delete vMap;
+			glFlush();
 		}
 	}
 	else
@@ -43,11 +100,11 @@ bool heightMap::loadRawFile(char* fileName)
 	fclose(file);
 	return loadFromFile;
 }
-int heightMap::getHeight(int _x, int _y)
+int HeightMap::getHeight(int _x, int _y)
 {
 	// Force x and y to cap out at (mapSize - 1)
-	int x = _x % mapSize;
-	int y = _y % mapSize;
+	int x = _x % width;
+	int y = _y % height;
 
 	// Check if empty
 	if (!g_HeightMap)
@@ -57,10 +114,10 @@ int heightMap::getHeight(int _x, int _y)
 	}
 
 	// Treat the array like a 2D array (.raw format is a single array)
-	return g_HeightMap[x + (y * mapSize)];	// Index into our height array and return the height
+	return g_HeightMap[x + (y * height)];	// Index into our height array and return the height
 }
 
-void heightMap::SetVertexColor(int x, int y)
+void HeightMap::setVertexColor(int x, int y)
 {
 	// Check if empty
 	if (!g_HeightMap)
@@ -72,12 +129,13 @@ void heightMap::SetVertexColor(int x, int y)
 	// Set color for a vertex based on height index.
 	// Ratio of color: from 0 to 1.0 by dividing the height by 256.0
 	float fColor = -0.15f + (getHeight(x, y) / 256.0f);
+	//float fColor = 1.0;
 
 	// Assign shade to the current vertex
-	glColor3f(fColor, fColor, fColor);
+	
 }
 
-void heightMap::renderHeightMap()
+void HeightMap::renderHeightMap()
 {
 	if (!g_HeightMap)
 	{
@@ -85,43 +143,6 @@ void heightMap::renderHeightMap()
 		return;
 	}
 
-	glBegin(GL_QUADS);	// Render Quads
-	int x, y, z;		// For readability/visuality (Where the map is in the dimension)
-
-	for (int _w = 0; _w < mapSize; _w += quadSize) //_width of map
-	{
-		for (int _h = 0; _h < mapSize; _h += quadSize) //_height of map
-		{
-			// Get (X, Y, Z) value for bottom left vertex
-			x = _w;
-			y = getHeight(_w, _h);
-			z = _h;
-			SetVertexColor(_w, _h);			// Set color value for current vertix
-			glVertex3i(x, y, z);			// Sends vertex to rendering
-
-			// Get (X, Y, Z) value for top left vertex
-			x = _w;
-			y = getHeight(_w, _h + quadSize);
-			z = _h + quadSize;
-			SetVertexColor(_w, _h);
-			glVertex3i(x, y, z);
-
-			// Get (X, Y, Z) value for top right vertex
-			x = _w + quadSize;
-			y = getHeight(_w + quadSize, _h + quadSize);
-			z = _h + quadSize;
-			SetVertexColor(_w, _h);
-			glVertex3i(x, y, z);
-
-			// Get (X, Y, Z) value for bottom right vertex
-			x = _w + quadSize;
-			y = getHeight(_w + quadSize, _h);
-			z = _h;
-			SetVertexColor(_w, _h);
-			glVertex3i(x, y, z);
-		}
-	}
-	glEnd();
-
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f); // Reset the color
+	glBindBuffer(GL_ARRAY_BUFFER, 1);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 256*256);
 }
