@@ -1,7 +1,9 @@
 #ifndef GBUFFER_HPP
 #define GBUFFER_HPP
 
+#include "Camera.hpp"
 #include <GL/glew.h>
+#include <glm\glm.hpp>
 
 class GBuffer
 {
@@ -15,7 +17,7 @@ public:
 	void bindLightRead();
 
 	void update(int width, int height);
-
+	void recreateFrustum(camera cam);
 	void draw();
 
 	GLuint lightShader;
@@ -37,8 +39,15 @@ private:
 
 	struct LightBuffer
 	{
+		GLuint compShader;
 		GLuint fbo;
 		GLuint lightTexture;
+
+		GLuint frustum;
+		GLuint lightInfo;
+		GLuint lightdetails;
+		GLuint atomicBuffer;
+
 	}
 	lightBuffer;
 

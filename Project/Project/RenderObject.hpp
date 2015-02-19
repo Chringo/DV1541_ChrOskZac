@@ -39,7 +39,7 @@ private:
 	{
 		GLuint v1, v2, v3;
 		//GLushort vt1, vt2, vt3; 
-		GLuint vn1, vn2, vn3;
+		//GLuint vn1, vn2, vn3;
 	};
 
 

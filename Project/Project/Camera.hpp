@@ -16,6 +16,7 @@ public:
 	float width, height;
 
 	glm::mat4 translation;
+	glm::mat4 projection;
 	glm::mat3 rot;
 
 	void genRot()

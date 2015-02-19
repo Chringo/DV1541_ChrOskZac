@@ -60,10 +60,10 @@ void renderObject::update()
 		sin((glm::pi<float>() / 180)*ry), 0.0f, cos((glm::pi<float>() / 180)*ry), 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f);
 	
-	modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0, 0, -2.0));
+	modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0, 0, 0));
 	modelMatrix = modelMatrix * rotMatrix;
 
-	ry += 1.0f;
+	//ry += 1.0f;
 
 }
 
@@ -87,6 +87,7 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 		return false;
 	}
 
+	fprintf(stdout, "Reading file\n");
 	while (1){
 
 		char lineHeader[128];
@@ -128,11 +129,13 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 			//int matches = fscanf_s(file, "%d//%d//%d %d//%d//%d %d//%d//%d\n", &ic.v1, &ic.vt1, &ic.vn1, &ic.v2, &ic.vt2, &ic.vn2, &ic.v3, &ic.vt3, &ic.vn3);
 			//*************************************************************//
 			
-			int matches = fscanf_s(file, "%d//%d %d//%d %d//%d\n", &ic.v1, &ic.vn1, &ic.v2, &ic.vn2, &ic.v3, &ic.vn3);
+			int _;
+
+			int matches = fscanf_s(file, "%d//%d %d//%d %d//%d\n", &ic.v1, &_, &ic.v2, &_, &ic.v3, &_);
 			
 			// decrement values in ic once
 			int * something = (int*)&ic;
-			for (size_t i = 0; i < 6; i++)
+			for (size_t i = 0; i < 3; i++)
 			{
 				something[i]--;
 			}
@@ -146,6 +149,8 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 
 	}
 
+	fprintf(stdout, "Generating vertices\n");
+
 	for (size_t i = 0; i < vertices.size(); i++)
 	{
 		objBuffer temp;
@@ -153,13 +158,14 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 		for (size_t j = 0; j < 3; j++)
 		{
 			temp.vertices[j] = vertices[i].pos[j];
-			temp.vns[j] = normals[i].pos[j];
+			//temp.vns[j] = normals[i].pos[j];
 		}
 		
 		out_objVec.push_back(temp);
 	}
 
 	//Succes!
+	fclose(file);
 	return true;
 }
 

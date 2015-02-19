@@ -150,6 +150,9 @@ void scene::frameUpdate()
 	if (updateGBuffer)
 	{
 		gBuffer.update((int)cam.width, (int)cam.height);
+		projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, cam.width / cam.height, 0.01f, 100.0f);
+		cam.projection = projectionMatrix;
+		gBuffer.recreateFrustum(cam);
 		updateGBuffer = false;
 	}
 
@@ -163,7 +166,7 @@ void scene::frameUpdate()
 	
 	viewMatrix = glm::mat4(cam.rot) * cam.translation;
 
-	projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, cam.width / cam.height, 0.01f, 100.0f);
+	
 
 	// register new completed objects
 }

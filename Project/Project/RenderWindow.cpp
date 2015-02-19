@@ -185,7 +185,7 @@ void renderWindow::renderThread()
 
 
 	// enable vsync
-	glfwSwapInterval(-1);
+	glfwSwapInterval(1);
 
 	// request buffers and init scene
 	int width, height;
