@@ -10,7 +10,7 @@ layout(location = 0) out vec3 lightBuffer;
 
 vec3 point = vec3(0.0f, 5.0f, 0.0f);
 float intens = 1.0f;
-vec3 Kd = vec3(1.0f, 1.0f, 1.0f);
+vec3 Kd = vec3(0.0f, 1.0f, 1.0f);
 
 void main () {
 	vec4 diffuse_color = texture(diffuse, vertex_texCoord0);

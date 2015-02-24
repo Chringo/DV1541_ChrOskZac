@@ -62,7 +62,6 @@ void scene::renderScene()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	
 	gBuffer.draw();
 
 	gBuffer.bindRead();
@@ -129,6 +128,20 @@ void scene::generateShader()
 		gBuffer.lightShader = program;
 	}
 
+	shader[0] = "shaders/light_cs.glsl";
+	shadeType[0] = GL_COMPUTE_SHADER;
+	program = 0;
+
+	if (CreateProgram(program, shader, shadeType, 1))
+	{
+		if (gBuffer.compShader != 0)
+		{
+			glDeleteProgram(gBuffer.compShader);
+		}
+		gBuffer.compShader = program;
+	}
+
+
 }
 
 void scene::screenChanged()
@@ -151,8 +164,8 @@ void scene::frameUpdate()
 	{
 		gBuffer.update((int)cam.width, (int)cam.height);
 		projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, cam.width / cam.height, 0.01f, 100.0f);
-		cam.projection = projectionMatrix;
-		gBuffer.recreateFrustum(cam);
+		//cam.projection = projectionMatrix;
+		//gBuffer.recreateFrustum(cam);
 		updateGBuffer = false;
 	}
 

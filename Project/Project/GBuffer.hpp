@@ -22,6 +22,7 @@ public:
 
 	GLuint lightShader;
 	GLuint combineShader;
+	GLuint compShader;
 
 private:
 
@@ -39,18 +40,20 @@ private:
 
 	struct LightBuffer
 	{
-		GLuint compShader;
 		GLuint fbo;
 		GLuint lightTexture;
-
-		GLuint frustum;
+		//GLuint frustum;
 		GLuint lightInfo;
-		GLuint lightdetails;
-		GLuint atomicBuffer;
+		//GLuint lightdetails;
+		//GLuint atomicBuffer;
 
 	}
 	lightBuffer;
 
+
+	int width;
+	int height;
+	int frame;
 
 };
 

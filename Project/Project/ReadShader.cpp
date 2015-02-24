@@ -43,6 +43,11 @@ bool CreateProgram(GLuint &programID, std::string shadernames[], GLenum shaderTy
 		{
 			success = false;
 			fprintf(stderr, "Failed to compiler shader %s\n", shadernames[i].c_str());
+
+			GLchar log[10240];
+			GLsizei length;
+			glGetShaderInfoLog(shader, 10239, &length, log);
+			fprintf(stderr, "Compiler log:\n%s\n", log);
 		}
 		glAttachShader(programID, shader);
 		glDeleteShader(shader);

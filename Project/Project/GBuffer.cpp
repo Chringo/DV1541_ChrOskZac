@@ -15,7 +15,7 @@ bool GBuffer::init(int width, int height)
 	glGenTextures(1, &lightBuffer.lightTexture);
 
 	genQuad();
-	
+	frame = 0;
 	return setTextures(width, height);
 }
 
@@ -111,11 +111,12 @@ bool GBuffer::setTextures(int width, int height)
 		return false;
 	}
 
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	// light buffer
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lightBuffer.fbo);
 	glBindTexture(GL_TEXTURE_2D, lightBuffer.lightTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lightBuffer.lightTexture, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -129,9 +130,11 @@ bool GBuffer::setTextures(int width, int height)
 		fprintf(stderr, "FB error, status: 0x%x\n", Status);
 		return false;
 	}
-
-	// restore default FBO
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	// restore default FBO
+
+	this->width = width;
+	this->height = height;
 
 	return true;
 }
@@ -145,10 +148,9 @@ void NormalizePlane(glm::vec4 &plane)
 	plane.w = plane.w / mag;
 }
 
-
 void GBuffer::recreateFrustum(camera cam)
 {
-	std::vector<glm::vec4> frustumPlanes;
+	std::vector<glm::vec4 *> frustumPlanes;
 
 	for (int x = 0; x < cam.width; x+= 32)
 	{
@@ -171,39 +173,44 @@ void GBuffer::recreateFrustum(camera cam)
 
 
 			glm::vec4 p_planes[6];
+			
+			glm::vec3 p4 = glm::cross(worldPosY32 - worldPos, worldPosX32 - worldPos);
+			glm::vec3 p5 = glm::cross(worldPosX32 - worldPos, worldPosY32 - worldPos);
 
+			//// Left clipping plane
+			//p_planes[0].x = cam.projection[3][0] + cam.projection[0][0];
+			//p_planes[0].y = cam.projection[3][1] + cam.projection[0][1];
+			//p_planes[0].z = cam.projection[3][2] + cam.projection[0][2];
+			//p_planes[0].w = cam.projection[3][3] + cam.projection[0][3];
+			//// Right clipping plane
+			//p_planes[1].x = cam.projection[3][0] - cam.projection[0][0];
+			//p_planes[1].y = cam.projection[3][1] - cam.projection[0][1];
+			//p_planes[1].z = cam.projection[3][2] - cam.projection[0][2];
+			//p_planes[1].w = cam.projection[3][3] - cam.projection[0][3];
+			//// Top clipping plane
+			//p_planes[2].x = cam.projection[3][0] + cam.projection[1][0];
+			//p_planes[2].y = cam.projection[3][1] + cam.projection[1][1];
+			//p_planes[2].z = cam.projection[3][2] + cam.projection[1][2];
+			//p_planes[2].w = cam.projection[3][3] + cam.projection[1][3];
+			//// Bottom clipping plane
+			//p_planes[3].x = cam.projection[3][0] - cam.projection[1][0];
+			//p_planes[3].y = cam.projection[3][1] - cam.projection[1][1];
+			//p_planes[3].z = cam.projection[3][2] - cam.projection[1][2];
+			//p_planes[3].w = cam.projection[3][3] - cam.projection[1][3];
+			//// Near clipping plane
+			//p_planes[4].x = cam.projection[3][0] + cam.projection[2][0];
+			//p_planes[4].y = cam.projection[3][1] + cam.projection[2][1];
+			//p_planes[4].z = cam.projection[3][2] + cam.projection[2][2];
+			//p_planes[4].w = cam.projection[3][3] + cam.projection[2][3];
+			//// Far clipping plane
+			//p_planes[5].x = cam.projection[3][0] - cam.projection[2][0];
+			//p_planes[5].y = cam.projection[3][1] - cam.projection[2][1];
+			//p_planes[5].z = cam.projection[3][2] - cam.projection[2][2];
+			//p_planes[5].w = cam.projection[3][3] - cam.projection[2][3];
 
-
-			// Left clipping plane
-			p_planes[0].x = cam.projection[3][0] + cam.projection[0][0];
-			p_planes[0].y = cam.projection[3][1] + cam.projection[0][1];
-			p_planes[0].z = cam.projection[3][2] + cam.projection[0][2];
-			p_planes[0].w = cam.projection[3][3] + cam.projection[0][3];
-			// Right clipping plane
-			p_planes[1].x = cam.projection[3][0] - cam.projection[0][0];
-			p_planes[1].y = cam.projection[3][1] - cam.projection[0][1];
-			p_planes[1].z = cam.projection[3][2] - cam.projection[0][2];
-			p_planes[1].w = cam.projection[3][3] - cam.projection[0][3];
-			// Top clipping plane
-			p_planes[2].x = cam.projection[3][0] + cam.projection[1][0];
-			p_planes[2].y = cam.projection[3][1] + cam.projection[1][1];
-			p_planes[2].z = cam.projection[3][2] + cam.projection[1][2];
-			p_planes[2].w = cam.projection[3][3] + cam.projection[1][3];
-			// Bottom clipping plane
-			p_planes[3].x = cam.projection[3][0] - cam.projection[1][0];
-			p_planes[3].y = cam.projection[3][1] - cam.projection[1][1];
-			p_planes[3].z = cam.projection[3][2] - cam.projection[1][2];
-			p_planes[3].w = cam.projection[3][3] - cam.projection[1][3];
-			// Near clipping plane
-			p_planes[4].x = cam.projection[3][0] + cam.projection[2][0];
-			p_planes[4].y = cam.projection[3][1] + cam.projection[2][1];
-			p_planes[4].z = cam.projection[3][2] + cam.projection[2][2];
-			p_planes[4].w = cam.projection[3][3] + cam.projection[2][3];
-			// Far clipping plane
-			p_planes[5].x = cam.projection[3][0] - cam.projection[2][0];
-			p_planes[5].y = cam.projection[3][1] - cam.projection[2][1];
-			p_planes[5].z = cam.projection[3][2] - cam.projection[2][2];
-			p_planes[5].w = cam.projection[3][3] - cam.projection[2][3];
+			
+			p_planes[4] = glm::vec4(p4, glm::length(p4));
+			p_planes[5] = glm::vec4(p5, glm::length(p5));
 
 			// Normalize the planes
 			NormalizePlane(p_planes[0]);
@@ -212,7 +219,9 @@ void GBuffer::recreateFrustum(camera cam)
 			NormalizePlane(p_planes[3]);
 			NormalizePlane(p_planes[4]);
 			NormalizePlane(p_planes[5]);
-			
+
+
+			frustumPlanes.push_back(p_planes);
 		}
 	}
 	
@@ -220,12 +229,26 @@ void GBuffer::recreateFrustum(camera cam)
 
 void GBuffer::draw()
 {
+	GLuint pos;
 	// bind buffer
 	glBindBuffer(GL_ARRAY_BUFFER, lightVbo);
 	glBindVertexArray(lightVao);
 
 	/// do light calculations
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lightBuffer.fbo);
+
+	glBindTexture(GL_TEXTURE_2D, lightBuffer.lightTexture);
+	glActiveTexture(GL_TEXTURE0);
+	glUseProgram(compShader);
+
+	glUniform1f(glGetUniformLocation(compShader, "roll"), (float)frame*0.01f);
+	glBindImageTexture(0, lightBuffer.lightTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+	float tx = ceilf((float)width / 32.0f);
+	float ty = ceilf((float)height / 32.0f);
+
+	glDispatchCompute((GLuint)tx, (GLuint)ty , 1);
+	
+	/*glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lightBuffer.fbo);
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -250,7 +273,7 @@ void GBuffer::draw()
 
 	// draw quad, on light FBO
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
+	*/
 	/// do end result
 	glDisable(GL_BLEND);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -271,6 +294,8 @@ void GBuffer::draw()
 	
 	// drwa quad, on backbugffer
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	frame++;
 }
 
 void GBuffer::bindDraw()
