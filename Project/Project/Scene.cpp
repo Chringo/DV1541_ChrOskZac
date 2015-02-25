@@ -3,7 +3,7 @@
 #include <sstream>
 #include <windows.h>
 #include "ReadShader.hpp"
-
+#include "Light.hpp"
 
 scene::scene()
 {
@@ -24,6 +24,14 @@ bool scene::requestBuffer(int width, int height)
 	{
 		fprintf(stdout, "Created framebuffer\n");
 	}
+
+	unsigned int nr;
+
+	Light * l = readLights("scene.light", nr);
+
+	gBuffer.streamLights(l, nr, sizeof(Light));
+
+	delete l;
 
 	obj.genBuffer(shaderProgram);
 

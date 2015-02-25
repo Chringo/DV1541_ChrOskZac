@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <vector>
 #include <glm\gtc\matrix_transform.hpp>
+#include "Light.hpp"
+
 
 bool GBuffer::init(int width, int height)
 {
@@ -15,6 +17,7 @@ bool GBuffer::init(int width, int height)
 	glGenTextures(1, &lightBuffer.lightTexture);
 
 	genQuad();
+
 	frame = 0;
 	return setTextures(width, height);
 }
@@ -139,6 +142,22 @@ bool GBuffer::setTextures(int width, int height)
 	return true;
 }
 
+void GBuffer::streamLights(void * data, int nrLigts, int objSize)
+{
+	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightBuffer.lightInfo);
+	glGenBuffers(1, &lightBuffer.lightInfo);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightBuffer.lightInfo);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, nrLigts * objSize, NULL, GL_STATIC_COPY);
+	
+	Light * pdata = (Light*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, nrLigts * objSize, GL_MAP_WRITE_BIT);
+
+	memcpy(pdata, data, nrLigts*objSize);
+
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+	lightBuffer.nrLights = nrLigts;
+}
+
 void NormalizePlane(glm::vec4 &plane)
 {
 	float mag = sqrt (plane.x * plane.x + plane.y * plane.y + plane.z * plane.z);
@@ -241,11 +260,28 @@ void GBuffer::draw()
 	glUseProgram(compShader);
 
 	glUniform1f(glGetUniformLocation(compShader, "roll"), (float)frame*0.01f);
+	glUniform1i(glGetUniformLocation(compShader, "nrLights"), lightBuffer.nrLights);
 	glBindImageTexture(0, lightBuffer.lightTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D, normalTexture);
+	glActiveTexture(GL_TEXTURE0 + 2);
+	glBindTexture(GL_TEXTURE_2D, worldPosTexture);
+
+	pos = glGetUniformLocation(lightShader, "diffuse");
+	glProgramUniform1i(lightShader, pos, 0);
+	pos = glGetUniformLocation(lightShader, "normal");
+	glProgramUniform1i(lightShader, pos, 1);
+	pos = glGetUniformLocation(lightShader, "worldPos");
+	glProgramUniform1i(lightShader, pos, 2);
 
 	float tx = ceilf((float)width / 32.0f);
 	float ty = ceilf((float)height / 32.0f);
 
+	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightBuffer.lightInfo);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightBuffer.lightInfo);
 	glDispatchCompute((GLuint)tx, (GLuint)ty , 1);
 	
 	/*glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lightBuffer.fbo);
@@ -257,19 +293,7 @@ void GBuffer::draw()
 
 	glUseProgram(lightShader);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glBindTexture(GL_TEXTURE_2D, normalTexture);
-	glActiveTexture(GL_TEXTURE0 + 2);
-	glBindTexture(GL_TEXTURE_2D, worldPosTexture);
-
-	GLuint pos = glGetUniformLocation(lightShader, "diffuse");
-	glProgramUniform1i(lightShader, pos, 0);
-	pos = glGetUniformLocation(lightShader, "normal");
-	glProgramUniform1i(lightShader, pos, 1);
-	pos = glGetUniformLocation(lightShader, "worldPos");
-	glProgramUniform1i(lightShader, pos, 2);
+	
 
 	// draw quad, on light FBO
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

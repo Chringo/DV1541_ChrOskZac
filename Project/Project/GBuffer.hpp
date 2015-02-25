@@ -24,6 +24,8 @@ public:
 	GLuint combineShader;
 	GLuint compShader;
 
+	void streamLights(void*, int nrObj, int objSize);
+
 private:
 
 	GLuint lightVbo;
@@ -42,6 +44,7 @@ private:
 	{
 		GLuint fbo;
 		GLuint lightTexture;
+		int nrLights;
 		//GLuint frustum;
 		GLuint lightInfo;
 		//GLuint lightdetails;
