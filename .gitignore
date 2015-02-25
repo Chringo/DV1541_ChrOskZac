@@ -2,7 +2,7 @@
 *.slo
 *.lo
 *.o
-*.obj
+//*.obj på grund av anledningar
 
 # Precompiled Headers
 *.gch

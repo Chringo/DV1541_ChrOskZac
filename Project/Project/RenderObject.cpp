@@ -17,14 +17,10 @@ renderObject::renderObject()
 
 void renderObject::genBuffer(GLuint shader)
 {
-	// Read our .obj file
-	//std::vector< myVec3 > vertices;
-	//std::vector< myVec2 > uvs; // Not used
-	//std::vector< myVec3 > normals;
-	std::vector< IndexContainer > indexes;
+	std::vector< GLuint > indexes;
 	std::vector < objBuffer > objB;
 	
-	bool res = loadOBJ("Cone.obj", objB, indexes);
+	bool res = loadOBJ("Meshes/Cube.obj", objB, indexes);
 
 	glGenBuffers(1, &vBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
@@ -32,7 +28,7 @@ void renderObject::genBuffer(GLuint shader)
 
 	glGenBuffers(1, &indexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.size() * sizeof(IndexContainer), &indexes[0], GL_DYNAMIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.size() * sizeof(GLuint), &indexes[0], GL_DYNAMIC_DRAW);
 	
 	// fauling haccus
 	indexSize = indexes.size();
@@ -72,20 +68,15 @@ const GLfloat * renderObject::getModelMatrix() const
 	return &modelMatrix[0][0];
 }
 
-bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_objVec, std::vector <IndexContainer> & out_indexes)
+bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_objVec, std::vector <GLuint> & out_indexes)
 {
 	std::vector < myVec3 > vertices;
 	std::vector < myVec2 > uvs;
 	std::vector < myVec3 > normals;
-	//Open file
+	std::vector < std::string > faces;
+
 	FILE * file;
 	fopen_s(&file, path, "r");
-
-	if (file == NULL)
-	{
-		printf("Impossible to open the file !\n");
-		return false;
-	}
 
 	while (1){
 
@@ -120,30 +111,41 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 		}
 		else if (strcmp(lineHeader, "f") == 0)
 		{
-			// Push faces into vector < IndexContainer >
-			IndexContainer ic = {0};
-			
-			//*************************************************************//
-			// .obj needs vt
-			//int matches = fscanf_s(file, "%d//%d//%d %d//%d//%d %d//%d//%d\n", &ic.v1, &ic.vt1, &ic.vn1, &ic.v2, &ic.vt2, &ic.vn2, &ic.v3, &ic.vt3, &ic.vn3);
-			//*************************************************************//
-			
-			int matches = fscanf_s(file, "%d//%d %d//%d %d//%d\n", &ic.v1, &ic.vn1, &ic.v2, &ic.vn2, &ic.v3, &ic.vn3);
-			
-			// decrement values in ic once
-			int * something = (int*)&ic;
-			for (size_t i = 0; i < 6; i++)
-			{
-				something[i]--;
-			}
-			
-			if (matches != 6){
-				printf("File can't be read by our simple parser : ( Try exporting with other options\n");
-				return false;
-			}
-			out_indexes.push_back(ic);
+			// read faces as char array and store in vector < string >
+			char s1[15];
+			char s2[15];
+			char s3[15];
+
+			fscanf_s(file, "%s %s %s", s1, sizeof(s1), s2, sizeof(s2), s3, sizeof(s3));
+
+			faces.push_back(std::string(s1));
+			faces.push_back(std::string(s2));
+			faces.push_back(std::string(s3));
 		}
 
+	}
+
+	GLuint newIndex = 0;
+	for (size_t i = 0; i < faces.size(); i++)
+	{
+		bool stringFound = false;
+		for (size_t j = 0; j < out_indexes.size() && !stringFound; j++)
+		{
+			// If the string already have been indexed earlier
+			if (faces[i] == faces[j])
+			{
+				out_indexes.push_back(out_indexes[j]);
+				stringFound = true;
+				break;
+			}
+		}
+		
+		// If the string havn´t been indexed, index it
+		if (!stringFound)
+		{
+			out_indexes.push_back(newIndex);
+			newIndex++;
+		}
 	}
 
 	for (size_t i = 0; i < vertices.size(); i++)
@@ -155,9 +157,15 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 			temp.vertices[j] = vertices[i].pos[j];
 			temp.vns[j] = normals[i].pos[j];
 		}
+
+		//
+		// uv:s here
+		//
 		
 		out_objVec.push_back(temp);
 	}
+
+	
 
 	//Succes!
 	return true;
@@ -176,7 +184,7 @@ void renderObject::render()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
 	// draw points 0-3 from the currently bound VAO with current in-use shader
-	glDrawElements(GL_TRIANGLES, indexSize * sizeof(IndexContainer), GL_UNSIGNED_INT, (void*)0);
+	glDrawElements(GL_TRIANGLES, indexSize * sizeof(GLuint), GL_UNSIGNED_INT, (void*)0);
 
 
 }
