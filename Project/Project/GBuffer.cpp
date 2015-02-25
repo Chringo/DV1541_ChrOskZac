@@ -158,92 +158,9 @@ void GBuffer::streamLights(void * data, int nrLigts, int objSize)
 	lightBuffer.nrLights = nrLigts;
 }
 
-void NormalizePlane(glm::vec4 &plane)
+void GBuffer::setProjection(void * data)
 {
-	float mag = sqrt (plane.x * plane.x + plane.y * plane.y + plane.z * plane.z);
-	plane.x = plane.x / mag;
-	plane.y = plane.y / mag;
-	plane.z = plane.z / mag;
-	plane.w = plane.w / mag;
-}
-
-void GBuffer::recreateFrustum(camera cam)
-{
-	std::vector<glm::vec4 *> frustumPlanes;
-
-	for (int x = 0; x < cam.width; x+= 32)
-	{
-		for (int y = 0; y < cam.height; y+=32)
-		{
-
-			glm::vec3 win(x, y, 1.0f);
-			glm::mat4 model(1);
-			glm::vec4 view(0, 0, cam.width, cam.height);
-			glm::vec3 worldPos = glm::unProject(win, model, cam.projection, view);
-
-			win   = glm::vec3(x + 32, y, 1.0f);
-			glm::vec3 worldPosX32 = glm::unProject(win, model, cam.projection, view);
-
-			win = glm::vec3(x, y+32, 1.0f);
-			glm::vec3 worldPosY32 = glm::unProject(win, model, cam.projection, view);
-
-			win = glm::vec3(x + 32, y + 32, 1.0f);
-			glm::vec3 worldPosXY32 = glm::unProject(win, model, cam.projection, view);
-
-
-			glm::vec4 p_planes[6];
-			
-			glm::vec3 p4 = glm::cross(worldPosY32 - worldPos, worldPosX32 - worldPos);
-			glm::vec3 p5 = glm::cross(worldPosX32 - worldPos, worldPosY32 - worldPos);
-
-			//// Left clipping plane
-			//p_planes[0].x = cam.projection[3][0] + cam.projection[0][0];
-			//p_planes[0].y = cam.projection[3][1] + cam.projection[0][1];
-			//p_planes[0].z = cam.projection[3][2] + cam.projection[0][2];
-			//p_planes[0].w = cam.projection[3][3] + cam.projection[0][3];
-			//// Right clipping plane
-			//p_planes[1].x = cam.projection[3][0] - cam.projection[0][0];
-			//p_planes[1].y = cam.projection[3][1] - cam.projection[0][1];
-			//p_planes[1].z = cam.projection[3][2] - cam.projection[0][2];
-			//p_planes[1].w = cam.projection[3][3] - cam.projection[0][3];
-			//// Top clipping plane
-			//p_planes[2].x = cam.projection[3][0] + cam.projection[1][0];
-			//p_planes[2].y = cam.projection[3][1] + cam.projection[1][1];
-			//p_planes[2].z = cam.projection[3][2] + cam.projection[1][2];
-			//p_planes[2].w = cam.projection[3][3] + cam.projection[1][3];
-			//// Bottom clipping plane
-			//p_planes[3].x = cam.projection[3][0] - cam.projection[1][0];
-			//p_planes[3].y = cam.projection[3][1] - cam.projection[1][1];
-			//p_planes[3].z = cam.projection[3][2] - cam.projection[1][2];
-			//p_planes[3].w = cam.projection[3][3] - cam.projection[1][3];
-			//// Near clipping plane
-			//p_planes[4].x = cam.projection[3][0] + cam.projection[2][0];
-			//p_planes[4].y = cam.projection[3][1] + cam.projection[2][1];
-			//p_planes[4].z = cam.projection[3][2] + cam.projection[2][2];
-			//p_planes[4].w = cam.projection[3][3] + cam.projection[2][3];
-			//// Far clipping plane
-			//p_planes[5].x = cam.projection[3][0] - cam.projection[2][0];
-			//p_planes[5].y = cam.projection[3][1] - cam.projection[2][1];
-			//p_planes[5].z = cam.projection[3][2] - cam.projection[2][2];
-			//p_planes[5].w = cam.projection[3][3] - cam.projection[2][3];
-
-			
-			p_planes[4] = glm::vec4(p4, glm::length(p4));
-			p_planes[5] = glm::vec4(p5, glm::length(p5));
-
-			// Normalize the planes
-			NormalizePlane(p_planes[0]);
-			NormalizePlane(p_planes[1]);
-			NormalizePlane(p_planes[2]);
-			NormalizePlane(p_planes[3]);
-			NormalizePlane(p_planes[4]);
-			NormalizePlane(p_planes[5]);
-
-
-			frustumPlanes.push_back(p_planes);
-		}
-	}
-	
+	lightBuffer.proj = data;
 }
 
 void GBuffer::draw()
@@ -270,12 +187,15 @@ void GBuffer::draw()
 	glActiveTexture(GL_TEXTURE0 + 2);
 	glBindTexture(GL_TEXTURE_2D, worldPosTexture);
 
-	pos = glGetUniformLocation(lightShader, "diffuse");
-	glProgramUniform1i(lightShader, pos, 0);
-	pos = glGetUniformLocation(lightShader, "normal");
-	glProgramUniform1i(lightShader, pos, 1);
-	pos = glGetUniformLocation(lightShader, "worldPos");
-	glProgramUniform1i(lightShader, pos, 2);
+	pos = glGetUniformLocation(compShader, "diffuse");
+	glProgramUniform1i(compShader, pos, 0);
+	pos = glGetUniformLocation(compShader, "normal");
+	glProgramUniform1i(compShader, pos, 1);
+	pos = glGetUniformLocation(compShader, "worldPos");
+	glProgramUniform1i(compShader, pos, 2);
+
+	pos = glGetUniformLocation(compShader, "proj");
+	glUniformMatrix4fv(pos, 1, GL_FALSE, (const GLfloat*) lightBuffer.proj);
 
 	float tx = ceilf((float)width / 32.0f);
 	float ty = ceilf((float)height / 32.0f);

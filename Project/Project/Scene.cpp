@@ -25,6 +25,8 @@ bool scene::requestBuffer(int width, int height)
 		fprintf(stdout, "Created framebuffer\n");
 	}
 
+	gBuffer.setProjection(&cam.projection);
+
 	unsigned int nr;
 
 	Light * l = readLights("scene.light", nr);
@@ -172,8 +174,7 @@ void scene::frameUpdate()
 	{
 		gBuffer.update((int)cam.width, (int)cam.height);
 		projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, cam.width / cam.height, 0.01f, 100.0f);
-		//cam.projection = projectionMatrix;
-		//gBuffer.recreateFrustum(cam);
+		cam.projection = projectionMatrix;
 		updateGBuffer = false;
 	}
 

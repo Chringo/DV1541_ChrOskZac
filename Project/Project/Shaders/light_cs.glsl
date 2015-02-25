@@ -1,7 +1,5 @@
 #version 430
-
-uniform float roll;
-
+#define MAX_LIGHTS 50
 layout(binding = 0, rgba32f) uniform image2D destTex;
 
 struct Light
@@ -25,49 +23,62 @@ uniform sampler2D diffuse;
 uniform sampler2D normal;
 uniform sampler2D worldPos;
 
+uniform mat4 proj;
+
 layout (local_size_x = 32, local_size_y = 32) in;
+
+shared uint pointLightIndex[MAX_LIGHTS];
+shared uint pointLightCount = 0;
 
 void main()
 {
-	ivec2 storePos = ivec2(gl_GlobalInvocationID.xy);
-	float localCoef = length(vec2(ivec2(gl_LocalInvocationID.xy)-8)/8.0);
-	float globalCoef = sin(float(gl_WorkGroupID.x+gl_WorkGroupID.y)*0.1 + roll)*0.5;
-
-	float Sx = gl_NumWorkGroups.x * 32;
-	float Sy = gl_NumWorkGroups.y * 32;
-
-	vec2 center = vec2(1.0);
-	vec2 z, c;
-	int iter = 100;
-	float scale = 2.0f;
-	vec2 pos = vec2(gl_GlobalInvocationID.x / Sx, gl_GlobalInvocationID.y / Sy);
-	
-	c.x = 1.3333 * (pos.x - 0.2f) * scale - center.x;
-	c.y = (pos.y) * scale - center.y;
-
-	int i;
-	z = c;
-	for(i=0; i<iter; i++) {
-		float x = (z.x * z.x - z.y * z.y) + c.x;
-		float y = (z.y * z.x + z.x * z.y) + c.y;
-
-		if((x * x + y * y) > 4.0) break;
-		z.x = x;
-		z.y = y;
-	}
-    /*if(l.length() == 1)
-        imageStore(destTex, storePos, vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    if(l.length() == 1)
-        imageStore(destTex, storePos, vec4(1.0f, 0.0f, 0.0f, 0.0f));
-    else if(l.length() == 2)
-        imageStore(destTex, storePos, vec4(0.0f, 1.0f, 0.0f, 0.0f));
-    else if(l.length() == 3)
-        imageStore(destTex, storePos, vec4(0.0f, 0.0f, 1.0f, 0.0f));
-    else
-    {
-        imageStore(destTex, storePos, normalize(vec4(l.length()/nrLights, 1.0f, 1.0f, 0.0f)));
-    }*/
+    vec2 size = vec2(gl_NumWorkGroups.x * 32, gl_NumWorkGroups.y * 32);
     
-    //imageStore(destTex, storePos, vec4(l[0].color.rgb, 0.0f));
-    imageStore(destTex, storePos, vec4(normalize(vec3(l[2].r, l[2].g, l[2].b)), 0.0f));
+	ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
+    vec2 tilePos = vec2(gl_WorkGroupID.xy * gl_WorkGroupSize.xy) / size;
+    
+    vec2 tileScale = size * (1.0f / float(2*32));
+    vec2 tileBias = tileScale - vec2(gl_WorkGroupID.xy);
+
+    vec4 c1 = vec4(-proj[0][0] * tileScale.x, 0.0f, tileBias.x, 0.0f);
+    vec4 c2 = vec4(0.0f, -proj[1][1] * tileScale.y, tileBias.y, 0.0f);
+    vec4 c4 = vec4(0.0f, 0.0f, 1.0f, 0.0f);
+	
+    // Derive frustum planes
+    vec4 frustumPlanes[6];
+    // Sides
+    //right
+    frustumPlanes[0] = c4 - c1;
+    //left
+    frustumPlanes[1] = c4 + c1;
+    //bottom
+    frustumPlanes[2] = c4 - c2;
+    //top
+    frustumPlanes[3] = c4 + c2;
+    // Near/far
+    frustumPlanes[4] = vec4(0.0f, 0.0f,  1.0f, -1);
+    frustumPlanes[5] = vec4(0.0f, 0.0f, -1.0f,  1);
+    
+    
+    // culling
+    
+    // something something loop
+    uint passCount = 1;
+    bool inside = false;
+    for (uint passIt = 0; passIt < passCount; ++passIt)
+    {
+        // something goes here
+        
+        //
+        if(inside)
+        {
+            uint id = atomicAdd(pointLightCount, 1);
+            //pointLightIndex[id] = lightIndex;
+        }
+    }
+        
+    
+    barrier();
+    //imageStore(destTex, pixelPos, vec4(l[0].color.rgb, 0.0f));
+    imageStore(destTex, pixelPos, vec4(normalize(vec3(l[2].r, l[2].g, l[2].b)), 0.0f));
 }

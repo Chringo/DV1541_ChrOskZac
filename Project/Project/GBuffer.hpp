@@ -17,7 +17,7 @@ public:
 	void bindLightRead();
 
 	void update(int width, int height);
-	void recreateFrustum(camera cam);
+	void setProjection(void * data);
 	void draw();
 
 	GLuint lightShader;
@@ -47,6 +47,7 @@ private:
 		int nrLights;
 		//GLuint frustum;
 		GLuint lightInfo;
+		void *proj;
 		//GLuint lightdetails;
 		//GLuint atomicBuffer;
 
