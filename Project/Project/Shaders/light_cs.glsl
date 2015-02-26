@@ -77,7 +77,9 @@ void main()
     for (uint passIt = 0; passIt < passCount; ++passIt)
     {
         uint lightIndex =  passIt * threadCount + gl_LocalInvocationIndex;
-        lightIndex = min(lightIndex, l.length());
+        if( lightIndex > l.length())
+            break;
+        //lightIndex = min(lightIndex, l.length());
         
         pLight = l[lightIndex];
         pos = view * vec4(pLight.pos.xyz, 1.0f);
