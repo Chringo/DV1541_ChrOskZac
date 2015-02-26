@@ -7,7 +7,6 @@
 
 scene::scene()
 {
-//	hMap = HeightMap();
 	shaderProgram = 0;
 }
 
@@ -19,7 +18,7 @@ scene::~scene()
 // create shader and object buffers
 bool scene::requestBuffer(int width, int height)
 {
-	//HeightMap hMap = HeightMap();
+	HeightMap hMap = HeightMap();
 
 	generateShader();
 
@@ -60,9 +59,13 @@ void scene::renderScene()
 	glUniformMatrix4fv(viewMat, 1, GL_FALSE, &viewMatrix[0][0]);
 	glUniformMatrix4fv(projectionMat, 1, GL_FALSE, &projectionMatrix[0][0]);
 
-	//obj.render();
+	obj.render();
 
 	/// HMAP
+	//if (hMap.loadRawFile("terrain.raw"))
+	//{
+	//	hMap.renderHeightMap();
+	//}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -166,7 +169,7 @@ void scene::frameUpdate()
 	// update camera
 	
 	viewMatrix = glm::mat4(cam.rot) * cam.translation;
-	projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, (cam.width / cam.height), 0.01f, 100.0f);
+	projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, (cam.width / cam.height), 0.01f, 10000.0f);
 
 	// register new completed objects
 	///

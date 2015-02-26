@@ -20,7 +20,7 @@ public:
 
 private:
 
-	void fillBuffer();
+	//void fillBuffer();
 
 	bool generated;
 
