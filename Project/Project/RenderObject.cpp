@@ -73,7 +73,9 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 	std::vector < myVec3 > vertices;
 	std::vector < myVec2 > uvs;
 	std::vector < myVec3 > normals;
-	std::vector < std::string > faces;
+	
+	//std::vector < std::string > faces;
+	std::vector < myVec3 > faces;
 
 	FILE * file;
 	fopen_s(&file, path, "r");
@@ -111,42 +113,59 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 		}
 		else if (strcmp(lineHeader, "f") == 0)
 		{
-			// read faces as char array and store in vector < string >
-			char s1[15];
-			char s2[15];
-			char s3[15];
+			//// read faces as char array and store in vector < string >
+			//char s1[15];
+			//char s2[15];
+			//char s3[15];
 
-			fscanf_s(file, "%s %s %s", s1, sizeof(s1), s2, sizeof(s2), s3, sizeof(s3));
+			//fscanf_s(file, "%s %s %s", s1, sizeof(s1), s2, sizeof(s2), s3, sizeof(s3));
 
-			faces.push_back(std::string(s1));
-			faces.push_back(std::string(s2));
-			faces.push_back(std::string(s3));
-		}
+			//faces.push_back(std::string(s1));
+			//faces.push_back(std::string(s2));
+			//faces.push_back(std::string(s3));
 
-	}
-
-	GLuint newIndex = 0;
-	for (size_t i = 0; i < faces.size(); i++)
-	{
-		bool stringFound = false;
-		for (size_t j = 0; j < out_indexes.size() && !stringFound; j++)
-		{
-			// If the string already have been indexed earlier
-			if (faces[i] == faces[j])
+			struct myIndexVec3
 			{
-				out_indexes.push_back(out_indexes[j]);
-				stringFound = true;
-				break;
-			}
-		}
-		
-		// If the string havn´t been indexed, index it
-		if (!stringFound)
-		{
-			out_indexes.push_back(newIndex);
-			newIndex++;
+				GLuint pos[3];
+			};
+			
+			myIndexVec3 v;
+			myIndexVec3 vn;
+			
+			fscanf_s(file, "%d//%d %d//%d %d//%d\n", &v.pos[0], &vn.pos[0], &v.pos[1], &vn.pos[1], &v.pos[2], &vn.pos[2]);
+
+			out_indexes.push_back(v.pos[0]);
+			out_indexes.push_back(v.pos[1]);
+			out_indexes.push_back(v.pos[2]);
+
+			out_indexes.push_back(vn.pos[0]);
+			out_indexes.push_back(vn.pos[1]);
+			out_indexes.push_back(vn.pos[2]);
 		}
 	}
+
+	//GLuint newIndex = 0;
+	//for (size_t i = 0; i < faces.size(); i++)
+	//{
+	//	bool stringFound = false;
+	//	for (size_t j = 0; j < out_indexes.size() && !stringFound; j++)
+	//	{
+	//		// If the string already have been indexed earlier
+	//		if (faces[i] == faces[j])
+	//		{
+	//			out_indexes.push_back(out_indexes[j]);
+	//			stringFound = true;
+	//			break;
+	//		}
+	//	}
+	//	
+	//	// If the string havn´t been indexed, index it
+	//	if (!stringFound)
+	//	{
+	//		out_indexes.push_back(newIndex);
+	//		newIndex++;
+	//	}
+	//}
 
 	for (size_t i = 0; i < vertices.size(); i++)
 	{
@@ -164,8 +183,6 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 		
 		out_objVec.push_back(temp);
 	}
-
-	
 
 	//Succes!
 	return true;
