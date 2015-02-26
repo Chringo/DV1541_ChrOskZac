@@ -17,7 +17,7 @@ public:
 	void bindLightRead();
 
 	void update(int width, int height);
-	void setProjection(void * data);
+	void setProjectionAndView(void * proj, void * view);
 	void draw();
 
 	GLuint lightShader;
@@ -48,6 +48,7 @@ private:
 		//GLuint frustum;
 		GLuint lightInfo;
 		void *proj;
+		void *view;
 		//GLuint lightdetails;
 		//GLuint atomicBuffer;
 

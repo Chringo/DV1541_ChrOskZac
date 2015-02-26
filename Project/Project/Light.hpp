@@ -7,10 +7,9 @@ using std::string;
 
 struct Light
 {
-	unsigned int id;
-	float x, y, z;
-	float r, g, b;
-	float distance;
+	float x, y, z, w;
+	float r, g, b, distance;
+	//float distance;
 };
 
 Light * readLights(std::string file, unsigned int &nrLights);

@@ -25,7 +25,7 @@ bool scene::requestBuffer(int width, int height)
 		fprintf(stdout, "Created framebuffer\n");
 	}
 
-	gBuffer.setProjection(&cam.projection);
+	gBuffer.setProjectionAndView(&cam.projection, &viewMatrix);
 
 	unsigned int nr;
 
@@ -188,7 +188,7 @@ void scene::frameUpdate()
 	
 	viewMatrix = glm::mat4(cam.rot) * cam.translation;
 
-	
+	gBuffer.setProjectionAndView(&cam.projection, &viewMatrix);
 
 	// register new completed objects
 }

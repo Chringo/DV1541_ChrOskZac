@@ -83,19 +83,19 @@ bool GBuffer::setTextures(int width, int height)
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
 
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, diffuseTexture, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glBindTexture(GL_TEXTURE_2D, normalTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalTexture, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glBindTexture(GL_TEXTURE_2D, worldPosTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, worldPosTexture, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -158,9 +158,10 @@ void GBuffer::streamLights(void * data, int nrLigts, int objSize)
 	lightBuffer.nrLights = nrLigts;
 }
 
-void GBuffer::setProjection(void * data)
+void GBuffer::setProjectionAndView(void * proj, void * view)
 {
-	lightBuffer.proj = data;
+	lightBuffer.proj = proj;
+	lightBuffer.view = view;
 }
 
 void GBuffer::draw()
@@ -176,33 +177,36 @@ void GBuffer::draw()
 	glActiveTexture(GL_TEXTURE0);
 	glUseProgram(compShader);
 
-	glUniform1f(glGetUniformLocation(compShader, "roll"), (float)frame*0.01f);
-	glUniform1i(glGetUniformLocation(compShader, "nrLights"), lightBuffer.nrLights);
 	glBindImageTexture(0, lightBuffer.lightTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+	glBindImageTexture(2, diffuseTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+	glBindImageTexture(3, normalTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+	glBindImageTexture(4, worldPosTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 
-	glActiveTexture(GL_TEXTURE0);
+	/*glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 	glActiveTexture(GL_TEXTURE0 + 1);
 	glBindTexture(GL_TEXTURE_2D, normalTexture);
 	glActiveTexture(GL_TEXTURE0 + 2);
 	glBindTexture(GL_TEXTURE_2D, worldPosTexture);
-
-	pos = glGetUniformLocation(compShader, "diffuse");
+	*/
+	/*pos = glGetUniformLocation(compShader, "diffuse");
 	glProgramUniform1i(compShader, pos, 0);
 	pos = glGetUniformLocation(compShader, "normal");
 	glProgramUniform1i(compShader, pos, 1);
 	pos = glGetUniformLocation(compShader, "worldPos");
 	glProgramUniform1i(compShader, pos, 2);
-
+	*/
 	pos = glGetUniformLocation(compShader, "proj");
 	glUniformMatrix4fv(pos, 1, GL_FALSE, (const GLfloat*) lightBuffer.proj);
+	pos = glGetUniformLocation(compShader, "view");
+	glUniformMatrix4fv(pos, 1, GL_FALSE, (const GLfloat*) lightBuffer.view);
+
 
 	float tx = ceilf((float)width / 32.0f);
 	float ty = ceilf((float)height / 32.0f);
-
 	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightBuffer.lightInfo);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightBuffer.lightInfo);
-	glDispatchCompute((GLuint)tx, (GLuint)ty , 1);
+	glDispatchCompute(tx, ty , 1);
 	
 	/*glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lightBuffer.fbo);
 
