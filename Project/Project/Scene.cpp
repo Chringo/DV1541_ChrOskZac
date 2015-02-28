@@ -29,6 +29,12 @@ bool scene::requestBuffer(int width, int height)
 
 	obj.genBuffer(shaderProgram);
 
+	if (hMap.loadRawFile("terrain.raw"))
+	{
+		
+	}
+
+
 	return true;
 }
 
@@ -62,10 +68,8 @@ void scene::renderScene()
 	obj.render();
 
 	/// HMAP
-	//if (hMap.loadRawFile("terrain.raw"))
-	//{
-	//	hMap.renderHeightMap();
-	//}
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	hMap.renderHeightMap();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
