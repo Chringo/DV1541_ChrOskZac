@@ -2,7 +2,7 @@
 #define HEIGHTMAP_HPP
 #define _CRT_SECURE_NO_DEPRECATE
 
-#include <stdio.h>	
+#include <stdio.h>
 
 #include <GL\glew.h>
 #include <GL\GL.h>

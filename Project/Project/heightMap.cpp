@@ -17,7 +17,7 @@ HeightMap::~HeightMap()
 
 bool HeightMap::loadRawFile(char* fileName)
 {
-	bool loadFromFile = true;
+	bool loadFromFile = false;
 	FILE* file = nullptr;
 
 	// Opens the file in Read/Binary mode.
@@ -40,56 +40,7 @@ bool HeightMap::loadRawFile(char* fileName)
 		}
 		else
 		{
-			glGenBuffers(1, &dataMap);
-			glBindBuffer(GL_ARRAY_BUFFER, dataMap);
-			struct vertexMap
-			{
-				float x, y, z;
-				float r, g, b;
-			};
-			const int i = 1024 / 4;
-			vertexMap* vMap = new vertexMap[i*i];
-
-			int x, y, z;		// For readability/visuality (Where the map is in the dimension)
-			int vCount = 0;
-			for (int _w = 0; _w < width/4; _w += quadSize) //_width of map
-			{
-				for (int _h = 0; _h < height/4; _h += quadSize) //_height of map
-				{
-					// Get (X, Y, Z) value for bottom left vertex
-					x = _w;
-					y = getHeight(_w * 4, _h * 4);
-					z = _h;
-					vMap[vCount] = vertexMap{ x, y, z, 0, 0, 0 };
-					vCount++;
-
-					// Get (X, Y, Z) value for top left vertex
-					x = _w;
-					y = getHeight(_w * 4, _h * 4 + quadSize);
-					z = _h + quadSize;
-					vMap[vCount] = vertexMap{ x, y, z, 0, 0, 0 };
-					vCount++;
-
-					// Get (X, Y, Z) value for top right vertex
-					x = _w + quadSize;
-					y = getHeight(_w * 4 + quadSize, _h * 4 + quadSize);
-					z = _h + quadSize;
-					vMap[vCount] = vertexMap{ x, y, z, 0, 0, 0 };
-					vCount++;
-
-					// Get (X, Y, Z) value for bottom right vertex
-					x = _w + quadSize;
-					y = getHeight(_w * 4 + quadSize, _h * 4);
-					z = _h;
-					vMap[vCount] = vertexMap{ x, y, z, 0, 0, 0 };
-					vCount++;
-				}
-			}
-
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vMap), &vMap, GL_DYNAMIC_DRAW);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			delete vMap;
-			glFlush();
+			loadFromFile = true;
 		}
 	}
 	else
@@ -132,7 +83,7 @@ void HeightMap::setVertexColor(int x, int y)
 	//float fColor = 1.0;
 
 	// Assign shade to the current vertex
-	
+	// glColor3f(fColor, fColor, fColor);
 }
 
 void HeightMap::renderHeightMap()
@@ -143,6 +94,7 @@ void HeightMap::renderHeightMap()
 		return;
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, 1);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 256*256);
+	//glBindBuffer(GL_ARRAY_BUFFER, 1);
+	//glDrawArrays(GL_TRIANGLE_STRIP, 0, 256*256);
+
 }

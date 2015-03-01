@@ -39,7 +39,7 @@ private:
 	
 	GBuffer gBuffer;
 
-	HeightMap hMap;
+	HeightMap* hMap;
 
 	camera cam;
 
