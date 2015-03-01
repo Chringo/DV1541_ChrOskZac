@@ -49,7 +49,7 @@ void renderObject::genBuffer(GLuint shader)
 	/// 
 
 	generated = true;
-	//fillBuffer();
+	fillBuffer();
 }
 
 void renderObject::update()
@@ -73,67 +73,67 @@ const GLfloat * renderObject::getModelMatrix() const
 	return &modelMatrix[0][0];
 }
 
-//void renderObject::fillBuffer()
-//{
-//	if (generated)
-//	{
-//		struct TriangleVertex
-//		{
-//			float x, y, z;
-//			float r, g, b;
-//		};
-//
-//		TriangleVertex tri[8] =
-//		{
-//			-0.500000, -0.500000, 0.500000,
-//			1, 1, 1,
-//			-0.500000, -0.500000, -0.500000,
-//			1, 0, 1,
-//			0.500000, -0.500000, -0.500000,
-//			1, 1, 0,
-//			0.500000, -0.500000, 0.500000,
-//			0, 1, 1,
-//			-0.500000, 0.500000, 0.500000,
-//			0, 0, 1,
-//			-0.500000, 0.500000, -0.500000,
-//			0, 1, 0,
-//			0.500000, 0.500000, -0.500000,
-//			1, 0, 0,
-//			0.500000, 0.500000, 0.500000,
-//			0, 0, 0,
-//
-//		};
-//
-//		struct Ind
-//		{
-//			GLushort v1, v2, v3;
-//		};
-//
-//		Ind index[12] =
-//		{
-//			5, 1, 0,
-//			6, 2, 1,
-//			7, 3, 2,
-//			4, 0, 3,
-//			1, 2, 3,
-//			6, 5, 4,
-//			4, 5, 0,
-//			5, 6, 1,
-//			6, 7, 2,
-//			7, 4, 3,
-//			0, 1, 3,
-//			7, 6, 4
-//		};
-//
-//		glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
-//		glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_DYNAMIC_DRAW);
-//
-//		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-//		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index), index, GL_DYNAMIC_DRAW);
-//
-//		glFlush();
-//	}
-//}
+void renderObject::fillBuffer()
+{
+	if (generated)
+	{
+		struct TriangleVertex
+		{
+			float x, y, z;
+			float r, g, b;
+		};
+
+		TriangleVertex tri[8] =
+		{
+			-0.500000, -0.500000, 0.500000,
+			1, 1, 1,
+			-0.500000, -0.500000, -0.500000,
+			1, 0, 1,
+			0.500000, -0.500000, -0.500000,
+			1, 1, 0,
+			0.500000, -0.500000, 0.500000,
+			0, 1, 1,
+			-0.500000, 0.500000, 0.500000,
+			0, 0, 1,
+			-0.500000, 0.500000, -0.500000,
+			0, 1, 0,
+			0.500000, 0.500000, -0.500000,
+			1, 0, 0,
+			0.500000, 0.500000, 0.500000,
+			0, 0, 0,
+
+		};
+
+		struct Ind
+		{
+			GLushort v1, v2, v3;
+		};
+
+		Ind index[12] =
+		{
+			5, 1, 0,
+			6, 2, 1,
+			7, 3, 2,
+			4, 0, 3,
+			1, 2, 3,
+			6, 5, 4,
+			4, 5, 0,
+			5, 6, 1,
+			6, 7, 2,
+			7, 4, 3,
+			0, 1, 3,
+			7, 6, 4
+		};
+
+		glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(tri), tri, GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index), index, GL_DYNAMIC_DRAW);
+
+		glFlush();
+	}
+}
 
 renderObject::~renderObject()
 {
