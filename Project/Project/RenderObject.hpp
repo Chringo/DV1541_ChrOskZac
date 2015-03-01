@@ -60,10 +60,18 @@ private:
 			return toReturn;
 		}
 	};
+	struct mtlContainer
+	{
+		GLfloat Ns; //specular exponent
+		myVec3 Ka;
+		myVec3 Kd;
+		myVec3 Ks;
+		//d (Tr) Transparency (not going to be implemented)
+		//illum (Illumination models) (not going to be implemented)
+	};
 
-	bool loadOBJ(const char * path, std::vector < objBuffer > & out_objVec, std::vector <GLuint> & out_indexes);
-
-	GLuint indexSize;
+	bool loadOBJ(std::string path, std::string & mtlFileName, std::vector < objBuffer > & out_objVec, std::vector <GLuint> & out_indexes);
+	bool loadMTL(std::string path, mtlContainer& mtl);
 
 	float ry = 0;
 

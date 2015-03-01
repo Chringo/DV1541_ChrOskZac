@@ -5,9 +5,6 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 
-// Because of obj loading
-#include <fstream>
-
 #define BUFFER_OFFSET(i) ((char *)nullptr + (i))
 
 renderObject::renderObject()
@@ -17,10 +14,15 @@ renderObject::renderObject()
 
 void renderObject::genBuffer(GLuint shader)
 {
+	glDisableVertexAttribArray;
+
 	std::vector< GLuint > indexes;
 	std::vector < objBuffer > objB;
+	std::string mtlFileName;
+	mtlContainer mtl;
 	
-	bool res = loadOBJ("Meshes/Cube.obj", objB, indexes);
+	bool res = loadOBJ("Meshes/Cube.obj", mtlFileName, objB, indexes);
+	bool res2 = loadMTL("Meshes/" + mtlFileName, mtl);
 
 	glGenBuffers(1, &vBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
@@ -29,20 +31,17 @@ void renderObject::genBuffer(GLuint shader)
 	glGenBuffers(1, &indexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexes.size() * sizeof(GLuint), &indexes[0], GL_DYNAMIC_DRAW);
-	
-	// fauling haccus
-	indexSize = indexes.size();
 
 	glGenVertexArrays(1, &vArray);
 	glBindVertexArray(vArray);
 
-	glEnableVertexAttribArray(0); //the vertex attribute object will remember its enabled attributes
-	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(0); 
+	//glEnableVertexAttribArray(1);
 	
 	GLuint vertexPos = glGetAttribLocation(shader, "vertex_position");
 	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(0));
-	GLuint vertexNormal = glGetAttribLocation(shader, "vertex_normal");
-	glVertexAttribPointer(vertexNormal, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(3 * sizeof(GLfloat)));
+	//GLuint vertexNormal = glGetAttribLocation(shader, "vertex_normal");
+	//glVertexAttribPointer(vertexNormal, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(3 * sizeof(GLfloat)));
 
 	glFlush();
 }
@@ -68,7 +67,8 @@ const GLfloat * renderObject::getModelMatrix() const
 	return &modelMatrix[0][0];
 }
 
-bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_objVec, std::vector <GLuint> & out_indexes)
+bool renderObject::loadOBJ(std::string path, std::string & mtlFileName, 
+	std::vector < objBuffer > & out_objVec, std::vector <GLuint> & out_indexes)
 {
 	std::vector < myVec3 > vertices;
 	std::vector < myVec2 > uvs;
@@ -78,16 +78,26 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 	std::vector < myVec3 > faces;
 
 	FILE * file;
-	fopen_s(&file, path, "r");
+	fopen_s(&file, path.data(), "r");
 
 	while (1){
-
 		char lineHeader[128];
-		// read the first word of the line
-		char res = fscanf_s(file, "%s", lineHeader, sizeof(lineHeader));
-		if (res == EOF) break; // EOF = End Of File. Quit the loop.
 
-		if (strcmp(lineHeader, "v") == 0)
+		// load a row into char array
+		char res = fscanf_s(file, "%s", lineHeader, sizeof(lineHeader));
+
+		// Check for End of file
+		if (res == EOF) break;
+		
+		
+		if (strcmp(lineHeader, "mtllib") == 0)
+		{
+			char mtlName[100];
+			fscanf_s(file, "%s", mtlName, sizeof(mtlName));
+			
+			mtlFileName = std::string(mtlName);
+		}
+		else if (strcmp(lineHeader, "v") == 0)
 		{
 			// Push vertices into vector < myVec3 >
 
@@ -134,13 +144,13 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 			
 			fscanf_s(file, "%d//%d %d//%d %d//%d\n", &v.pos[0], &vn.pos[0], &v.pos[1], &vn.pos[1], &v.pos[2], &vn.pos[2]);
 
-			out_indexes.push_back(v.pos[0]);
-			out_indexes.push_back(v.pos[1]);
-			out_indexes.push_back(v.pos[2]);
+			out_indexes.push_back(v.pos[0] - 1);
+			out_indexes.push_back(v.pos[1] - 1);
+			out_indexes.push_back(v.pos[2] - 1);
 
-			out_indexes.push_back(vn.pos[0]);
-			out_indexes.push_back(vn.pos[1]);
-			out_indexes.push_back(vn.pos[2]);
+			//out_indexes.push_back(vn.pos[0] - 1);
+			//out_indexes.push_back(vn.pos[1] - 1);
+			//out_indexes.push_back(vn.pos[2] - 1);
 		}
 	}
 
@@ -167,6 +177,8 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 	//	}
 	//}
 
+	fclose(file);
+
 	for (size_t i = 0; i < vertices.size(); i++)
 	{
 		objBuffer temp;
@@ -188,6 +200,50 @@ bool renderObject::loadOBJ(const char * path, std::vector < objBuffer > & out_ob
 	return true;
 }
 
+bool renderObject::loadMTL(std::string path, mtlContainer& mtl)
+{
+	FILE * file;
+	fopen_s(&file, path.data(), "r");
+
+	while (1){
+		char lineHeader[128];
+
+		// load a row into char array
+		char res = fscanf_s(file, "%s", lineHeader, sizeof(lineHeader));
+
+		// Check for End Of File
+		if (res == EOF) break;
+
+		if (strcmp(lineHeader, "Ns") == 0)
+		{
+			fscanf_s(file, "%f\n", &mtl.Ns);
+		}
+		else if (strcmp(lineHeader, "Ka") == 0)
+		{
+			fscanf_s(file, "%f %f %f\n", &mtl.Ka.pos[0], &mtl.Ka.pos[1], &mtl.Ka.pos[2]);
+		}
+		else if (strcmp(lineHeader, "Kd") == 0)
+		{
+			fscanf_s(file, "%f %f %f\n", &mtl.Kd.pos[0], &mtl.Kd.pos[1], &mtl.Kd.pos[2]);
+		}
+		else if (strcmp(lineHeader, "Ks") == 0)
+		{
+			fscanf_s(file, "%f %f %f\n", &mtl.Ks.pos[0], &mtl.Ks.pos[1], &mtl.Ks.pos[2]);
+		}
+		/*******************************************************************************/
+		// d (ignore)
+		/*******************************************************************************/
+		/*******************************************************************************/
+		// illum (ignore)
+		/*******************************************************************************/
+	}
+
+	fclose(file);
+
+	// Succes!
+	return true;
+}
+
 renderObject::~renderObject()
 {
 
@@ -201,7 +257,5 @@ void renderObject::render()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
 	// draw points 0-3 from the currently bound VAO with current in-use shader
-	glDrawElements(GL_TRIANGLES, indexSize * sizeof(GLuint), GL_UNSIGNED_INT, (void*)0);
-
-
+	glDrawElements(GL_TRIANGLES, 12 * sizeof(GLuint), GL_UNSIGNED_INT, (void*)0);
 }
