@@ -44,9 +44,9 @@ void renderObject::genBuffer(GLuint shader)
 	glEnableVertexAttribArray(1);
 	
 	GLuint vertexPos = glGetAttribLocation(shader, "vertex_position");
-	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(0));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(0));
 	GLuint vertexNormal = glGetAttribLocation(shader, "vertex_normal");
-	glVertexAttribPointer(vertexNormal, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(3 * sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(3 * sizeof(GLfloat)));
 
 	glFlush();
 }

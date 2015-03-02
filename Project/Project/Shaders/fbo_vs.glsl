@@ -7,7 +7,7 @@ out vec3 worldPosG;
 out vec3 vn;
 
 void main () {
-	colorG = vec3 (1, 1, 1);
+	colorG = vec3 (0.7, 0.1, 0.8f);
 	
 	//worldPosG = (model * vec4(vertex_position, 1.0)).xyz;
 	//gl_Position = projection * view * model * vec4 (vertex_position, 1.0);

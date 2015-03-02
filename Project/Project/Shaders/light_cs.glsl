@@ -22,6 +22,7 @@ uniform mat4 proj;
 uniform mat4 view;
 
 shared uint pointLightIndex[MAX_LIGHTS];
+shared Light pointLight[MAX_LIGHTS];
 shared uint pointLightCount = 0;
 
 layout (local_size_x = WORKGROUP_SIZE, local_size_y = WORKGROUP_SIZE) in;
@@ -98,6 +99,7 @@ void main()
             {
                 id = atomicAdd(pointLightCount, 1);
                 pointLightIndex[id] = lightIndex;
+                pointLight[id] = pLight;
                 
             }
         }
@@ -110,11 +112,17 @@ void main()
     //    color = vec3(0.25f * pointLightCount);
     //}
     
+    
+    vec4 position = imageLoad(worldPos, pixelPos);
+    vec4 normal = imageLoad(normalTex, pixelPos);
+    vec3 n = normalize(normal.xyz);
+    vec3 v = normalize(vec3(-position.xyz));
+    float shinyPower = 2000.0f;
+    
     for(uint index = 0; index < pointLightCount; index++)
     {
-        Light pLight = l[pointLightIndex[index]];
-        vec4 position = imageLoad(worldPos, pixelPos);
-        vec4 normal = imageLoad(normalTex, pixelPos);
+        //Light pLight = l[pointLightIndex[index]];
+        Light pLight = pointLight[index];
         float dist = distance(position.xyz, pLight.pos.xyz);
         //if(dist < pLight.color.w)
         //{
@@ -124,10 +132,7 @@ void main()
             if(dist != 0)
                 attenuation = 1 - clamp((dist / d), 0, 1);
             
-            vec3 n = normalize(normal.xyz);
             vec3 s = normalize(vec3(pLight.pos.xyz - position.xyz));
-            vec3 v = normalize(vec3(-position.xyz));
-            float shinyPower = 2000.0f;
     
             vec3 r = reflect(-s, n);
     		vec3 specularLight = pLight.color.rgb * pow(max(dot(r, v), 0.0), shinyPower);

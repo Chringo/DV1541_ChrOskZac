@@ -40,7 +40,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 	
 	// create a window with 400 400 in size
-	window = glfwCreateWindow(1920, 1080, "Title", NULL, NULL);
+	window = glfwCreateWindow(400, 400, "Title", NULL, NULL);
 	
 	// if we failed creating a window
 	if (!window)
