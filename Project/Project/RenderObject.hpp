@@ -21,6 +21,8 @@ public:
 	const GLfloat * getModelMatrix() const;
 
 private:
+	GLuint indexSize;
+
 	struct objBuffer
 	{
 		GLfloat vertices[3];

@@ -21,8 +21,10 @@ void renderObject::genBuffer(GLuint shader)
 	std::string mtlFileName;
 	mtlContainer mtl;
 	
-	bool res = loadOBJ("Meshes/Cube.obj", mtlFileName, objB, indexes);
+	std::string fileName = "IcoSphere.obj";
+	bool res = loadOBJ("Meshes/" + fileName, mtlFileName, objB, indexes);
 	bool res2 = loadMTL("Meshes/" + mtlFileName, mtl);
+	indexSize = indexes.size() / 3;
 
 	glGenBuffers(1, &vBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
@@ -36,19 +38,18 @@ void renderObject::genBuffer(GLuint shader)
 	glBindVertexArray(vArray);
 
 	glEnableVertexAttribArray(0); 
-	//glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(1);
 	
 	GLuint vertexPos = glGetAttribLocation(shader, "vertex_position");
 	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(0));
-	//GLuint vertexNormal = glGetAttribLocation(shader, "vertex_normal");
-	//glVertexAttribPointer(vertexNormal, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(3 * sizeof(GLfloat)));
+	GLuint vertexNormal = glGetAttribLocation(shader, "vertex_normal");
+	glVertexAttribPointer(vertexNormal, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(3 * sizeof(GLfloat)));
 
 	glFlush();
 }
 
 void renderObject::update()
 {
-
 	glm::mat4 rotMatrix = glm::mat4(
 		cos((glm::pi<float>() / 180)*ry), 0.0f, -sin((glm::pi<float>() / 180)*ry), 0.0f,
 		0.0f, 1.0f, 0.0f, 0.0f,
@@ -59,7 +60,6 @@ void renderObject::update()
 	modelMatrix = modelMatrix * rotMatrix;
 
 	ry += 1.0f;
-
 }
 
 const GLfloat * renderObject::getModelMatrix() const
@@ -74,8 +74,12 @@ bool renderObject::loadOBJ(std::string path, std::string & mtlFileName,
 	std::vector < myVec2 > uvs;
 	std::vector < myVec3 > normals;
 	
-	//std::vector < std::string > faces;
-	std::vector < myVec3 > faces;
+	struct face
+	{
+		GLuint v[3];
+		GLuint vn[3];
+	};
+	std::vector < face > faces;
 
 	FILE * file;
 	fopen_s(&file, path.data(), "r");
@@ -123,77 +127,38 @@ bool renderObject::loadOBJ(std::string path, std::string & mtlFileName,
 		}
 		else if (strcmp(lineHeader, "f") == 0)
 		{
-			//// read faces as char array and store in vector < string >
-			//char s1[15];
-			//char s2[15];
-			//char s3[15];
-
-			//fscanf_s(file, "%s %s %s", s1, sizeof(s1), s2, sizeof(s2), s3, sizeof(s3));
-
-			//faces.push_back(std::string(s1));
-			//faces.push_back(std::string(s2));
-			//faces.push_back(std::string(s3));
-
-			struct myIndexVec3
+			face temp;
+			fscanf_s(file, "%d//%d %d//%d %d//%d\n", &temp.v[0], &temp.vn[0], &temp.v[1], &temp.vn[1], &temp.v[2], &temp.vn[2]);
+			
+			for (size_t i = 0; i < 3; i++)
 			{
-				GLuint pos[3];
-			};
+				temp.v[i] --;
+				temp.vn[i] --;
+			}
 			
-			myIndexVec3 v;
-			myIndexVec3 vn;
-			
-			fscanf_s(file, "%d//%d %d//%d %d//%d\n", &v.pos[0], &vn.pos[0], &v.pos[1], &vn.pos[1], &v.pos[2], &vn.pos[2]);
-
-			out_indexes.push_back(v.pos[0] - 1);
-			out_indexes.push_back(v.pos[1] - 1);
-			out_indexes.push_back(v.pos[2] - 1);
-
-			//out_indexes.push_back(vn.pos[0] - 1);
-			//out_indexes.push_back(vn.pos[1] - 1);
-			//out_indexes.push_back(vn.pos[2] - 1);
+			faces.push_back(temp);
 		}
 	}
 
-	//GLuint newIndex = 0;
-	//for (size_t i = 0; i < faces.size(); i++)
-	//{
-	//	bool stringFound = false;
-	//	for (size_t j = 0; j < out_indexes.size() && !stringFound; j++)
-	//	{
-	//		// If the string already have been indexed earlier
-	//		if (faces[i] == faces[j])
-	//		{
-	//			out_indexes.push_back(out_indexes[j]);
-	//			stringFound = true;
-	//			break;
-	//		}
-	//	}
-	//	
-	//	// If the string havn´t been indexed, index it
-	//	if (!stringFound)
-	//	{
-	//		out_indexes.push_back(newIndex);
-	//		newIndex++;
-	//	}
-	//}
-
 	fclose(file);
 
-	for (size_t i = 0; i < vertices.size(); i++)
+	for (size_t i = 0; i < faces.size(); i++)
 	{
-		objBuffer temp;
-		
 		for (size_t j = 0; j < 3; j++)
 		{
-			temp.vertices[j] = vertices[i].pos[j];
-			temp.vns[j] = normals[i].pos[j];
+			objBuffer temp;
+			for (size_t k = 0; k < 3; k++)
+			{
+				temp.vertices[k] = vertices[faces[i].v[j]].pos[k];
+				temp.vns[k] = normals[faces[i].vn[j]].pos[k];
+			}
+			out_objVec.push_back(temp);
+			out_indexes.push_back(3*i + j);
 		}
-
-		//
-		// uv:s here
-		//
 		
-		out_objVec.push_back(temp);
+		//
+		// uv:s don´t forget them
+		//
 	}
 
 	//Succes!
@@ -251,11 +216,10 @@ renderObject::~renderObject()
 
 void renderObject::render()
 {
-	
 	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
 	glBindVertexArray(vArray);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
 	// draw points 0-3 from the currently bound VAO with current in-use shader
-	glDrawElements(GL_TRIANGLES, 12 * sizeof(GLuint), GL_UNSIGNED_INT, (void*)0);
+	glDrawElements(GL_TRIANGLES, indexSize * sizeof(GLuint), GL_UNSIGNED_INT, (void*)0);
 }
