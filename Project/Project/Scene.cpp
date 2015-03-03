@@ -12,13 +12,13 @@ scene::scene()
 
 scene::~scene()
 {
-	delete hMap;
+	//delete hMap;
 }
 
 // create shader and object buffers
 bool scene::requestBuffer(int width, int height)
 {
-	hMap = new HeightMap();
+	//hMap = new HeightMap();
 
 	generateShader();
 
@@ -27,12 +27,13 @@ bool scene::requestBuffer(int width, int height)
 		fprintf(stdout, "Created framebuffer\n");
 	}
 
+	obj.loadRawFile("terrain.raw");
 	obj.genBuffer(shaderProgram);
 
-	if (hMap->loadRawFile("terrain.raw"))
-	{
-		
-	}
+	//if (hMap->loadRawFile("terrain.raw"))
+	//{
+	//	
+	//}
 
 
 	return true;
@@ -69,7 +70,7 @@ void scene::renderScene()
 
 	/// HMAP
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	hMap->renderHeightMap();
+	//hMap->renderHeightMap();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

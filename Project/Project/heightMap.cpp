@@ -94,11 +94,6 @@ void HeightMap::renderHeightMap()
 		return;
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, 1);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 256*256);		// glBegin( GL_QUADS ); - replaced?
-
-	glGenBuffers(1, &dataMap);
-	glBindBuffer(GL_ARRAY_BUFFER, dataMap);
 	struct vertexMap
 	{
 		float x, y, z;
@@ -106,7 +101,10 @@ void HeightMap::renderHeightMap()
 	};
 	const int i = 1024 / 4;
 	vertexMap* vMap = new vertexMap[i*i];
+	int rgbColor = 255;
 
+	glGenBuffers(1, &dataMap);
+	glBindBuffer(GL_ARRAY_BUFFER, dataMap);
 	int x, y, z;		// For readability/visuality (Where the map is in the dimension)
 	int vCount = 0;
 	for (int _w = 0; _w < width / 4; _w += quadSize) //_width of map
@@ -117,34 +115,37 @@ void HeightMap::renderHeightMap()
 			x = _w;
 			y = getHeight(_w * 4, _h * 4);
 			z = _h;
-			vMap[vCount] = vertexMap{ x, y, z, 0, 0, 0 };
+			vMap[vCount] = vertexMap{ x, y, z, rgbColor, rgbColor, rgbColor };
 			vCount++;
 
 			// Get (X, Y, Z) value for top left vertex
 			x = _w;
 			y = getHeight(_w * 4, _h * 4 + quadSize);
 			z = _h + quadSize;
-			vMap[vCount] = vertexMap{ x, y, z, 0, 0, 0 };
+			vMap[vCount] = vertexMap{ x, y, z, rgbColor, rgbColor, rgbColor };
 			vCount++;
 
 			// Get (X, Y, Z) value for top right vertex
 			x = _w + quadSize;
 			y = getHeight(_w * 4 + quadSize, _h * 4 + quadSize);
 			z = _h + quadSize;
-			vMap[vCount] = vertexMap{ x, y, z, 0, 0, 0 };
+			vMap[vCount] = vertexMap{ x, y, z, rgbColor, rgbColor, rgbColor };
 			vCount++;
 
 			// Get (X, Y, Z) value for bottom right vertex
 			x = _w + quadSize;
 			y = getHeight(_w * 4 + quadSize, _h * 4);
 			z = _h;
-			vMap[vCount] = vertexMap{ x, y, z, 0, 0, 0 };
+			vMap[vCount] = vertexMap{ x, y, z, rgbColor, rgbColor, rgbColor };
 			vCount++;
 		}
 	}
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vMap), &vMap, GL_DYNAMIC_DRAW); // GL_STATIC_DRAW replaced
+	glBindBuffer(GL_ARRAY_BUFFER, 0); // (GLenum target, GLuint buffer)
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vMap), &vMap, GL_DYNAMIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	delete vMap;
 	glFlush();
+
+	glBindBuffer(GL_ARRAY_BUFFER, 1);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 256 * 256);		// glBegin( GL_QUADS ); - replaced?
 }
