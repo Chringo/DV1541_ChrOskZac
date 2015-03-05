@@ -16,19 +16,18 @@ out vec3 normal;
 out vec3 worldPos;
 
 void main () {
-	vec4 p1 = model * gl_in[1].gl_Position;
-	vec4 p2 = model * gl_in[2].gl_Position;
-	vec4 p0 = model * gl_in[0].gl_Position;
-	
-	//normal = normalize (cross( vec3(p1.xyz - p0.xyz ), vec3(  p2.xyz - p0.xyz ) ) );
+		float d = dot( (view * model * -gl_in[0].gl_Position).xyz, normal);
 
-		for( int i = 0; i < 3; i++ )
+		if(d > 0.0f)
 		{
-			gl_Position =  projection * view * model * gl_in[i].gl_Position;
-			color = colorG[i];
-			normal = (model * vec4(vn[i], 0.0f)).xyz;
-			worldPos = (model * vec4(worldPosG[i], 1.0f)).xyz;
-			EmitVertex();
+			for( int i = 0; i < 3; i++ )
+			{
+				gl_Position =  projection * view * model * gl_in[i].gl_Position;
+				color = colorG[i];
+				normal = (model * vec4(vn[i], 0.0f)).xyz;
+				worldPos = (model * vec4(worldPosG[i], 1.0f)).xyz;
+				EmitVertex();
+			}
+			EndPrimitive();
 		}
-		EndPrimitive();
 }

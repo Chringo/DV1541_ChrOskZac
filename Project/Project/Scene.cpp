@@ -3,7 +3,7 @@
 #include <sstream>
 #include <windows.h>
 #include "ReadShader.hpp"
-
+#include "Light.hpp"
 
 scene::scene()
 {
@@ -24,6 +24,16 @@ bool scene::requestBuffer(int width, int height)
 	{
 		fprintf(stdout, "Created framebuffer\n");
 	}
+
+	gBuffer.setProjectionAndView(&cam.projection, &viewMatrix);
+
+	unsigned int nr;
+
+	Light * l = readLights("scene.light", nr);
+
+	gBuffer.streamLights(l, nr, sizeof(Light));
+
+	delete l;
 
 	obj.genBuffer(shaderProgram);
 
@@ -62,7 +72,6 @@ void scene::renderScene()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	
 	gBuffer.draw();
 
 	gBuffer.bindRead();
@@ -129,6 +138,20 @@ void scene::generateShader()
 		gBuffer.lightShader = program;
 	}
 
+	shader[0] = "shaders/light_cs.glsl";
+	shadeType[0] = GL_COMPUTE_SHADER;
+	program = 0;
+
+	if (CreateProgram(program, shader, shadeType, 1))
+	{
+		if (gBuffer.compShader != 0)
+		{
+			glDeleteProgram(gBuffer.compShader);
+		}
+		gBuffer.compShader = program;
+	}
+
+
 }
 
 void scene::screenChanged()
@@ -150,6 +173,8 @@ void scene::frameUpdate()
 	if (updateGBuffer)
 	{
 		gBuffer.update((int)cam.width, (int)cam.height);
+		projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, cam.width / cam.height, 0.01f, 100.0f);
+		cam.projection = projectionMatrix;
 		updateGBuffer = false;
 	}
 
@@ -163,7 +188,7 @@ void scene::frameUpdate()
 	
 	viewMatrix = glm::mat4(cam.rot) * cam.translation;
 
-	projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, cam.width / cam.height, 0.01f, 100.0f);
+	gBuffer.setProjectionAndView(&cam.projection, &viewMatrix);
 
 	// register new completed objects
 }

@@ -41,9 +41,9 @@ void renderObject::genBuffer(GLuint shader)
 	glEnableVertexAttribArray(1);
 	
 	GLuint vertexPos = glGetAttribLocation(shader, "vertex_position");
-	glVertexAttribPointer(vertexPos, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(0));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(0));
 	GLuint vertexNormal = glGetAttribLocation(shader, "vertex_normal");
-	glVertexAttribPointer(vertexNormal, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(3 * sizeof(GLfloat)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(3 * sizeof(GLfloat)));
 
 	glFlush();
 }
@@ -56,7 +56,7 @@ void renderObject::update()
 		sin((glm::pi<float>() / 180)*ry), 0.0f, cos((glm::pi<float>() / 180)*ry), 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f);
 	
-	modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0, 0, -2.0));
+	modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0, 0, 0));
 	modelMatrix = modelMatrix * rotMatrix;
 
 	ry += 1.0f;
@@ -83,6 +83,8 @@ bool renderObject::loadOBJ(std::string path, std::string & mtlFileName,
 
 	FILE * file;
 	fopen_s(&file, path.data(), "r");
+
+	fprintf(stdout, "Reading file\n");
 
 	while (1){
 		char lineHeader[128];
@@ -129,7 +131,7 @@ bool renderObject::loadOBJ(std::string path, std::string & mtlFileName,
 		{
 			face temp;
 			fscanf_s(file, "%d//%d %d//%d %d//%d\n", &temp.v[0], &temp.vn[0], &temp.v[1], &temp.vn[1], &temp.v[2], &temp.vn[2]);
-			
+
 			for (size_t i = 0; i < 3; i++)
 			{
 				temp.v[i] --;
@@ -140,7 +142,7 @@ bool renderObject::loadOBJ(std::string path, std::string & mtlFileName,
 		}
 	}
 
-	fclose(file);
+	fprintf(stdout, "Generating vertices\n");
 
 	for (size_t i = 0; i < faces.size(); i++)
 	{
@@ -162,6 +164,7 @@ bool renderObject::loadOBJ(std::string path, std::string & mtlFileName,
 	}
 
 	//Succes!
+	fclose(file);
 	return true;
 }
 

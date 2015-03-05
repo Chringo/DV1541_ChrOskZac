@@ -1,7 +1,9 @@
 #ifndef GBUFFER_HPP
 #define GBUFFER_HPP
 
+#include "Camera.hpp"
 #include <GL/glew.h>
+#include <glm\glm.hpp>
 
 class GBuffer
 {
@@ -15,11 +17,14 @@ public:
 	void bindLightRead();
 
 	void update(int width, int height);
-
+	void setProjectionAndView(void * proj, void * view);
 	void draw();
 
 	GLuint lightShader;
 	GLuint combineShader;
+	GLuint compShader;
+
+	void streamLights(void*, int nrObj, int objSize);
 
 private:
 
@@ -39,9 +44,21 @@ private:
 	{
 		GLuint fbo;
 		GLuint lightTexture;
+		int nrLights;
+		//GLuint frustum;
+		GLuint lightInfo;
+		void *proj;
+		void *view;
+		//GLuint lightdetails;
+		//GLuint atomicBuffer;
+
 	}
 	lightBuffer;
 
+
+	int width;
+	int height;
+	int frame;
 
 };
 

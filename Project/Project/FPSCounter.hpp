@@ -3,6 +3,7 @@
 
 #include <time.h>
 #include <string>
+#include <chrono>
 
 class fpsCounter
 {
@@ -20,10 +21,10 @@ private:
 	unsigned int m_fpscount = 0;
 
 	// time for when to update fps
-	time_t t;
-	tm now;
-	tm curr;
-
+	
+	
+	std::chrono::system_clock::time_point begin;
+	std::chrono::system_clock::time_point end;
 
 };
 

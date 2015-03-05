@@ -1,5 +1,9 @@
 #include "GBuffer.hpp"
 #include <stdio.h>
+#include <vector>
+#include <glm\gtc\matrix_transform.hpp>
+#include "Light.hpp"
+
 
 bool GBuffer::init(int width, int height)
 {
@@ -13,7 +17,8 @@ bool GBuffer::init(int width, int height)
 	glGenTextures(1, &lightBuffer.lightTexture);
 
 	genQuad();
-	
+
+	frame = 0;
 	return setTextures(width, height);
 }
 
@@ -78,19 +83,19 @@ bool GBuffer::setTextures(int width, int height)
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
 
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, diffuseTexture, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glBindTexture(GL_TEXTURE_2D, normalTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normalTexture, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glBindTexture(GL_TEXTURE_2D, worldPosTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, worldPosTexture, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -109,11 +114,12 @@ bool GBuffer::setTextures(int width, int height)
 		return false;
 	}
 
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	// light buffer
 
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lightBuffer.fbo);
 	glBindTexture(GL_TEXTURE_2D, lightBuffer.lightTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, lightBuffer.lightTexture, 0);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -127,21 +133,82 @@ bool GBuffer::setTextures(int width, int height)
 		fprintf(stderr, "FB error, status: 0x%x\n", Status);
 		return false;
 	}
-
-	// restore default FBO
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	// restore default FBO
+
+	this->width = width;
+	this->height = height;
 
 	return true;
 }
 
+void GBuffer::streamLights(void * data, int nrLigts, int objSize)
+{
+	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightBuffer.lightInfo);
+	glGenBuffers(1, &lightBuffer.lightInfo);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightBuffer.lightInfo);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, nrLigts * objSize, NULL, GL_STATIC_COPY);
+	
+	Light * pdata = (Light*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, 0, nrLigts * objSize, GL_MAP_WRITE_BIT);
+
+	memcpy(pdata, data, nrLigts*objSize);
+
+	glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+	lightBuffer.nrLights = nrLigts;
+}
+
+void GBuffer::setProjectionAndView(void * proj, void * view)
+{
+	lightBuffer.proj = proj;
+	lightBuffer.view = view;
+}
+
 void GBuffer::draw()
 {
+	GLuint pos;
 	// bind buffer
 	glBindBuffer(GL_ARRAY_BUFFER, lightVbo);
 	glBindVertexArray(lightVao);
 
 	/// do light calculations
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lightBuffer.fbo);
+
+	glBindTexture(GL_TEXTURE_2D, lightBuffer.lightTexture);
+	glActiveTexture(GL_TEXTURE0);
+	glUseProgram(compShader);
+
+	glBindImageTexture(0, lightBuffer.lightTexture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+	glBindImageTexture(2, diffuseTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+	glBindImageTexture(3, normalTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+	glBindImageTexture(4, worldPosTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+
+	/*glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D, normalTexture);
+	glActiveTexture(GL_TEXTURE0 + 2);
+	glBindTexture(GL_TEXTURE_2D, worldPosTexture);
+	*/
+	/*pos = glGetUniformLocation(compShader, "diffuse");
+	glProgramUniform1i(compShader, pos, 0);
+	pos = glGetUniformLocation(compShader, "normal");
+	glProgramUniform1i(compShader, pos, 1);
+	pos = glGetUniformLocation(compShader, "worldPos");
+	glProgramUniform1i(compShader, pos, 2);
+	*/
+	pos = glGetUniformLocation(compShader, "proj");
+	glUniformMatrix4fv(pos, 1, GL_FALSE, (const GLfloat*) lightBuffer.proj);
+	pos = glGetUniformLocation(compShader, "view");
+	glUniformMatrix4fv(pos, 1, GL_FALSE, (const GLfloat*) lightBuffer.view);
+
+
+	float tx = ceilf((float)width / 32.0f);
+	float ty = ceilf((float)height / 32.0f);
+	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightBuffer.lightInfo);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightBuffer.lightInfo);
+	glDispatchCompute(tx, ty , 1);
+	
+	/*glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lightBuffer.fbo);
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -150,23 +217,11 @@ void GBuffer::draw()
 
 	glUseProgram(lightShader);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glBindTexture(GL_TEXTURE_2D, normalTexture);
-	glActiveTexture(GL_TEXTURE0 + 2);
-	glBindTexture(GL_TEXTURE_2D, worldPosTexture);
-
-	GLuint pos = glGetUniformLocation(lightShader, "diffuse");
-	glProgramUniform1i(lightShader, pos, 0);
-	pos = glGetUniformLocation(lightShader, "normal");
-	glProgramUniform1i(lightShader, pos, 1);
-	pos = glGetUniformLocation(lightShader, "worldPos");
-	glProgramUniform1i(lightShader, pos, 2);
+	
 
 	// draw quad, on light FBO
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
+	*/
 	/// do end result
 	glDisable(GL_BLEND);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -187,6 +242,8 @@ void GBuffer::draw()
 	
 	// drwa quad, on backbugffer
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	frame++;
 }
 
 void GBuffer::bindDraw()
