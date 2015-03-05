@@ -16,6 +16,12 @@ out vec3 normal;
 out vec3 worldPos;
 
 void main () {
+
+        vec3 ab = (view * model * gl_in[1].gl_Position - view * model * gl_in[0].gl_Position).xyz;
+        vec3 ac = (view * model * gl_in[2].gl_Position - view * model * gl_in[0].gl_Position).xyz;
+        
+        normal = normalize(cross( ab, ac));
+        
 		float d = dot( (view * model * -gl_in[0].gl_Position).xyz, normal);
 
 		if(d > 0.0f)
@@ -24,7 +30,7 @@ void main () {
 			{
 				gl_Position =  projection * view * model * gl_in[i].gl_Position;
 				color = colorG[i];
-				normal = (model * vec4(vn[i], 0.0f)).xyz;
+				normal = normalize((model * vec4(vn[i], 0.0f)).xyz);
 				worldPos = (model * vec4(worldPosG[i], 1.0f)).xyz;
 				EmitVertex();
 			}

@@ -21,7 +21,7 @@ void renderObject::genBuffer(GLuint shader)
 	std::string mtlFileName;
 	mtlContainer mtl;
 	
-	std::string fileName = "IcoSphere.obj";
+	std::string fileName = "House.obj";
 	bool res = loadOBJ("Meshes/" + fileName, mtlFileName, objB, indexes);
 	bool res2 = loadMTL("Meshes/" + mtlFileName, mtl);
 	indexSize = indexes.size() / 3;
@@ -59,7 +59,7 @@ void renderObject::update()
 	modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0, 0, 0));
 	modelMatrix = modelMatrix * rotMatrix;
 
-	ry += 1.0f;
+	//ry += 1.0f;
 }
 
 const GLfloat * renderObject::getModelMatrix() const

@@ -43,10 +43,16 @@ class ExportLight(bpy.types.Operator, ExportHelper):
         file.write(uint(len(bpy.data.objects)))
         for obj in bpy.data.objects:
             if obj.type == 'LAMP':
-                file.write(uint(lightIndex))
-                floatArr(file, obj.location)
+                #file.write(uint(lightIndex))
+                #floatArr(file, obj.location)
+                file.write(float32bit(obj.location[0]))
+                file.write(float32bit(obj.location[2]))
+                file.write(float32bit(-obj.location[1]))
+                file.write(float32bit(0))
                 floatArr(file, obj.data.color)
+                #file.write(float32bit(0))
                 file.write(float32bit(obj.data.distance))
+                #floatArr(file, {0, 0, 0})
                 lightIndex += 1
                 print('Light')
         
