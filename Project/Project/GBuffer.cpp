@@ -200,7 +200,16 @@ void GBuffer::draw()
 	glUniformMatrix4fv(pos, 1, GL_FALSE, (const GLfloat*) lightBuffer.proj);
 	pos = glGetUniformLocation(compShader, "view");
 	glUniformMatrix4fv(pos, 1, GL_FALSE, (const GLfloat*) lightBuffer.view);
+	
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, worldPosTexture);
+	pos = glGetUniformLocation(compShader, "worldPosSampler");
+	glProgramUniform1i(compShader, pos, 0);
 
+	glActiveTexture(GL_TEXTURE0+1);
+	glBindTexture(GL_TEXTURE_2D, normalTexture);
+	pos = glGetUniformLocation(compShader, "normalSampler");
+	glProgramUniform1i(compShader, pos, 1);
 
 	float tx = ceilf((float)width / 32.0f);
 	float ty = ceilf((float)height / 32.0f);
