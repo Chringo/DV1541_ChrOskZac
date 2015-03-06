@@ -25,7 +25,7 @@ uniform mat4 proj;
 uniform mat4 view;
 
 shared uint pointLightIndex[MAX_LIGHTS];
-shared Light pointLight[MAX_LIGHTS];
+//shared Light pointLight[MAX_LIGHTS];
 shared uint pointLightCount = 0;
 
 const int sample_count = 16;
@@ -107,7 +107,7 @@ void main()
         pLight = l[lightIndex];
         pos = view * vec4(pLight.pos.xyz, 1.0f);
         rad = pLight.color.w;
-
+    
         if (pointLightCount < MAX_LIGHTS)
         {
             inFrustum = true;
@@ -116,12 +116,12 @@ void main()
                 dist = dot(frustumPlanes[i], pos);
                 inFrustum = (-rad <= dist);
             }
-
+    
             if (inFrustum)
             {
                 id = atomicAdd(pointLightCount, 1);
                 pointLightIndex[id] = lightIndex;
-                pointLight[id] = pLight;
+                //pointLight[id] = pLight;
                 
             }
         }
@@ -143,8 +143,8 @@ void main()
     
     for(uint index = 0; index < pointLightCount; index++)
     {
-        //Light pLight = l[pointLightIndex[index]];
-        Light pLight = pointLight[index];
+        Light pLight = l[pointLightIndex[index]];
+        //Light pLight = pointLight[index];
         float dist = distance(position.xyz, pLight.pos.xyz);
         //if(dist < pLight.color.w)
         {
@@ -192,7 +192,7 @@ void main()
         ambientOcclusion += (a * b);
     }
     
-    color *= vec3(1 - 2*(ambientOcclusion / sample_count) );
+    //color = vec3(1 - 2*(ambientOcclusion / sample_count), 0, 0 );
     
     imageStore(destTex, pixelPos, vec4(color.rgb, 0.0f));
     //imageStore(destTex, pixelPos, vec4(normalize(vec3(l[2].r, l[2].g, l[2].b)), 0.0f));

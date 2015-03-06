@@ -67,7 +67,7 @@ int main()
 	}
 	glfwMakeContextCurrent(NULL);
 	///
-
+	
 
 	renderWindow rWindow(window);
 	rWindow.createThread();

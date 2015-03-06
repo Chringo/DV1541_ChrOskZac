@@ -163,6 +163,11 @@ void renderWindow::renderThread()
 {
 	glfwMakeContextCurrent(window);
 
+	int asd;
+
+	glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &asd);
+
+	std::cout << asd << std::endl;
 
 #ifdef _DEBUG
 	if (glDebugMessageCallback){

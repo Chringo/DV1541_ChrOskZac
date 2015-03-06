@@ -49,6 +49,7 @@ void scene::updateScene()
 // render our stuff
 void scene::renderScene()
 {
+	glUseProgram(0);
 	frameUpdate();
 
 	gBuffer.bindDraw();
