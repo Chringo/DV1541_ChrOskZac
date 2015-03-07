@@ -16,7 +16,7 @@ public:
 	bool loadRawFile(char*);	// Reads a.raw file (Be sure to get size of map first)
 	int getHeight(int, int);	// Returns height(0 to 255) of coordinates from a height map
 
-	void setVertexColor(int, int);	// Set color of the map
+	float setVertexColor(int, int);	// Set color of the map
 
 	void renderHeightMap();		// Turns heightmap data into primitives and draws them to the screen
 

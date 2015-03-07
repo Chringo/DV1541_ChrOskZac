@@ -68,22 +68,19 @@ int HeightMap::getHeight(int _x, int _y)
 	return g_HeightMap[x + (y * height)];	// Index into our height array and return the height
 }
 
-void HeightMap::setVertexColor(int x, int y)
+float HeightMap::setVertexColor(int x, int y)
 {
 	// Check if empty
 	if (!g_HeightMap)
 	{
 		// TODO: printf to console
-		return;
 	}
 
 	// Set color for a vertex based on height index.
 	// Ratio of color: from 0 to 1.0 by dividing the height by 256.0
 	float fColor = -0.15f + (getHeight(x, y) / 256.0f);
 	//float fColor = 1.0;
-
-	// Assign shade to the current vertex
-	// glColor3f(fColor, fColor, fColor);
+	return fColor;
 }
 
 void HeightMap::renderHeightMap()
@@ -97,7 +94,7 @@ void HeightMap::renderHeightMap()
 	struct vertexMap
 	{
 		float x, y, z;
-		float r, g, b;
+		int r, g, b;
 	};
 	const int i = 1024 / 4;
 	vertexMap* vMap = new vertexMap[i*i];
