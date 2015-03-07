@@ -27,7 +27,7 @@ bool scene::requestBuffer(int width, int height)
 		fprintf(stdout, "Created framebuffer\n");
 	}
 
-	obj.loadRawFile("terrain.raw");
+	obj.loadRawFile("null.raw");
 	obj.genBuffer(shaderProgram);
 
 	//if (hMap->loadRawFile("terrain.raw"))

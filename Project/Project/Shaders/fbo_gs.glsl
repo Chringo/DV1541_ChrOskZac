@@ -1,6 +1,6 @@
 #version 430
 layout (triangles) in;
-layout (triangle_strip) out;
+layout (line_strip) out;
 layout (max_vertices = 3) out;
 
 uniform mat4 model;

@@ -46,34 +46,34 @@ void renderObject::genBuffer(GLuint shader)
 	}
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexMap) * vCount, &vMap[0], GL_DYNAMIC_DRAW); // GL_STATIC_DRAW replaced
 
-	//glGenBuffers(1, &indexBuffer);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-	//struct indexArray
-	//{
-	//	GLuint v1, v2, v3;
-	//};
+	glGenBuffers(1, &indexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+	struct indexArray
+	{
+		GLuint v1, v2, v3;
+	};
 
-	//std::vector<indexArray> indexHolder;
-	//for (int _w = 0; _w < width - 1; _w += quadSize) //_width of map
-	//{
-	//	for (int _h = 0; _h < (height - 1); _h += quadSize) //_height of map
-	//	{
-	//		indexArray index;
-	//		index.v1 = _h + (1024 * _w);
-	//		index.v2 = (_h + 1) + (1024 * (_w + 1));
-	//		index.v3 = (_h + 1) + (1024 * _w);
+	std::vector<indexArray> indexHolder;
+	for (int _w = 0; _w < width - 1; _w += quadSize) //_width of map
+	{
+		for (int _h = 0; _h < (height - 1); _h += quadSize) //_height of map
+		{
+			indexArray index;
+			index.v1 = _h + (1024 * _w);
+			index.v2 = (_h + 1) + (1024 * (_w + 1));
+			index.v3 = (_h + 1) + (1024 * _w);
 
-	//		indexArray index2;
-	//		index2.v1 = index.v1;
-	//		index2.v2 = _h + (1024 * (_w + 1));
-	//		index2.v3 = index.v2;
+			indexArray index2;
+			index2.v1 = index.v1;
+			index2.v2 = _h + (1024 * (_w + 1));
+			index2.v3 = index.v2;
 
-	//		indexHolder.push_back(index);
-	//		indexHolder.push_back(index2);
-	//	}
-	//}
-	//nrIndex = indexHolder.size();
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexArray) * indexHolder.size(), &indexHolder[0], GL_DYNAMIC_DRAW);
+			indexHolder.push_back(index);
+			indexHolder.push_back(index2);
+		}
+	}
+	nrIndex = indexHolder.size();
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexArray) * indexHolder.size(), &indexHolder[0], GL_DYNAMIC_DRAW);
 
 	glGenVertexArrays(1, &vArray);
 	glBindVertexArray(vArray);
