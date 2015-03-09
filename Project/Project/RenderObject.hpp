@@ -26,8 +26,21 @@ private:
 	struct objBuffer
 	{
 		GLfloat vertices[3];
-		//GLfloat uvs[2];
+		GLfloat uvs[2];
 		GLfloat vns[3];
+		objBuffer operator=(const objBuffer& right)
+		{
+			this->vertices[0] = right.vertices[0];
+			this->vertices[1] = right.vertices[1];
+			this->vertices[2] = right.vertices[2];
+			this->uvs[0] = right.uvs[0];
+			this->uvs[1] = right.uvs[1];
+			this->vns[0] = right.vns[0];
+			this->vns[1] = right.vns[1];
+			this->vns[2] = right.vns[2];
+
+			return *this;
+		}
 	};
 	struct myVec3
 	{

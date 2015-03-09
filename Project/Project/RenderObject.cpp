@@ -21,7 +21,7 @@ void renderObject::genBuffer(GLuint shader)
 	std::string mtlFileName;
 	mtlContainer mtl;
 	
-	std::string fileName = "House.obj";
+	std::string fileName = "mustang.obj";
 	bool res = loadOBJ("Meshes/" + fileName, mtlFileName, objB, indexes);
 	bool res2 = loadMTL("Meshes/" + mtlFileName, mtl);
 	indexSize = indexes.size() / 3;
@@ -77,6 +77,7 @@ bool renderObject::loadOBJ(std::string path, std::string & mtlFileName,
 	struct face
 	{
 		GLuint v[3];
+		GLuint uv[3];
 		GLuint vn[3];
 	};
 	std::vector < face > faces;
@@ -130,11 +131,12 @@ bool renderObject::loadOBJ(std::string path, std::string & mtlFileName,
 		else if (strcmp(lineHeader, "f") == 0)
 		{
 			face temp;
-			fscanf_s(file, "%d//%d %d//%d %d//%d\n", &temp.v[0], &temp.vn[0], &temp.v[1], &temp.vn[1], &temp.v[2], &temp.vn[2]);
+			fscanf_s(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &temp.v[0], &temp.uv[0], &temp.vn[0], &temp.v[1], &temp.uv[1], &temp.vn[1], &temp.v[2], &temp.uv[2], &temp.vn[2]);
 
-			for (size_t i = 0; i < 3; i++)
+			for (GLuint i = 0; i < 3; i++)
 			{
 				temp.v[i] --;
+				temp.uv[i] --;
 				temp.vn[i] --;
 			}
 			
@@ -149,18 +151,24 @@ bool renderObject::loadOBJ(std::string path, std::string & mtlFileName,
 		for (size_t j = 0; j < 3; j++)
 		{
 			objBuffer temp;
-			for (size_t k = 0; k < 3; k++)
-			{
-				temp.vertices[k] = vertices[faces[i].v[j]].pos[k];
-				temp.vns[k] = normals[faces[i].vn[j]].pos[k];
-			}
+
+			// Copying vertices
+			temp.vertices[0] = vertices[faces[i].v[j]].pos[0];
+			temp.vertices[1] = vertices[faces[i].v[j]].pos[1];
+			temp.vertices[2] = vertices[faces[i].v[j]].pos[2];
+
+			// Copying texture normals
+			temp.uvs[0] = uvs[faces[i].uv[j]].pos[0];
+			temp.uvs[1] = uvs[faces[i].uv[j]].pos[1];
+
+			// Copying vertex normals
+			temp.vns[0] = normals[faces[i].vn[j]].pos[0];
+			temp.vns[1] = normals[faces[i].vn[j]].pos[1];
+			temp.vns[2] = normals[faces[i].vn[j]].pos[2];
+
 			out_objVec.push_back(temp);
 			out_indexes.push_back(3*i + j);
 		}
-		
-		//
-		// uv:s don´t forget them
-		//
 	}
 
 	//Succes!
