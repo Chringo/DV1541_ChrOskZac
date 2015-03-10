@@ -37,13 +37,17 @@ void renderObject::genBuffer(GLuint shader)
 	glGenVertexArrays(1, &vArray);
 	glBindVertexArray(vArray);
 
-	glEnableVertexAttribArray(0); 
-	glEnableVertexAttribArray(1);
-	
 	GLuint vertexPos = glGetAttribLocation(shader, "vertex_position");
+	glEnableVertexAttribArray(vertexPos);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(0));
+	
+	GLuint textureNormal = glGetAttribLocation(shader, "texture_normal");
+	glEnableVertexAttribArray(textureNormal);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(3 * sizeof(GLfloat)));
+	
 	GLuint vertexNormal = glGetAttribLocation(shader, "vertex_normal");
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(vertexNormal);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(objBuffer), BUFFER_OFFSET(5 * sizeof(GLfloat)));
 
 	glFlush();
 }
