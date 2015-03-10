@@ -115,6 +115,7 @@ const GLfloat * renderObject::getModelMatrix() const
 renderObject::~renderObject()
 {
 	delete g_HeightMap;
+	delete vMap;
 }
 
 void renderObject::render()

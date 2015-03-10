@@ -93,16 +93,16 @@ void HeightMap::renderHeightMap()
 
 	struct vertexMap
 	{
-		float x, y, z;
-		int r, g, b;
+		GLfloat x, y, z;
+		GLfloat r, g, b;
 	};
 	const int i = 1024 / 4;
 	vertexMap* vMap = new vertexMap[i*i];
-	int rgbColor = 255;
+	GLfloat rgbColor = 255;
 
 	glGenBuffers(1, &dataMap);
 	glBindBuffer(GL_ARRAY_BUFFER, dataMap);
-	int x, y, z;		// For readability/visuality (Where the map is in the dimension)
+	GLfloat x, y, z;		// For readability/visuality (Where the map is in the dimension)
 	int vCount = 0;
 	for (int _w = 0; _w < width / 4; _w += quadSize) //_width of map
 	{

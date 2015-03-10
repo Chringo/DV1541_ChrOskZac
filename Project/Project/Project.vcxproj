@@ -93,7 +93,10 @@
   <ItemGroup>
     <ClCompile Include="FPSCounter.cpp" />
     <ClCompile Include="GBuffer.cpp" />
-    <ClCompile Include="HeightMap.cpp" />
+    <ClCompile Include="HeightMap.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ReadShader.cpp" />
     <ClCompile Include="RenderObject.cpp" />
@@ -104,7 +107,10 @@
     <ClInclude Include="Camera.hpp" />
     <ClInclude Include="FPSCounter.hpp" />
     <ClInclude Include="GBuffer.hpp" />
-    <ClInclude Include="HeightMap.hpp" />
+    <ClInclude Include="HeightMap.hpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="ReadShader.hpp" />
     <ClInclude Include="RenderObject.hpp" />
     <ClInclude Include="RenderWindow.hpp" />
