@@ -14,15 +14,17 @@ renderObject::renderObject()
 
 	generated = false;
 
-	width = 1024;
-	height = 1024;
-	mapSize = width * height;
+	mapWidth = 1024;
+	mapHeight = 1024;
+	mapSize = mapWidth * mapHeight;
 	quadSize = 1;
 	g_HeightMap = new unsigned char[mapSize];
 
-	const int i = 1024;
-	vMap = new vertexMap[i*i];
-	rgbColor = 1;
+	gridWidth = mapWidth - 1;
+	gridHeight = mapHeight - 1;
+
+	vertices = new VertexPosition[mapWidth * mapHeight];	// Allocate memory for the individual vertices of the terrain
+	rgbColor = 1.0f;
 }
 
 void renderObject::genBuffer(GLuint shader)
@@ -30,21 +32,16 @@ void renderObject::genBuffer(GLuint shader)
 	glGenBuffers(1, &dataMap);
 	glBindBuffer(GL_ARRAY_BUFFER, dataMap);
 
-	int x, y, z;		// For readability/visuality (Where the map is in the dimension)
-	int vCount = 0;
-	for (int _w = 0; _w < width; _w += quadSize) //_width of map
+	int vIndex = 0;
+	for (int _w = 0; _w < mapWidth; ++_w)
 	{
-		for (int _h = 0; _h < height; _h += quadSize) //_height of map
+		for (int _h = 0; _h < mapHeight; ++_h)
 		{
-			// Get (X, Y, Z) value for bottom left vertex
-			x = _w;
-			y = getHeight(_w, _h);
-			z = _h;
-			vMap[vCount] = vertexMap{ x, y, z, rgbColor, rgbColor, rgbColor };
-			vCount++;
+			//rgbColor = setVertexColor(_w, _h);
+			vertices[vIndex++] = VertexPosition{ _w, /*getHeight(_w, _h)*/0, _h, rgbColor, rgbColor, rgbColor };
 		}
 	}
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexMap) * vCount, &vMap[0], GL_DYNAMIC_DRAW); // GL_STATIC_DRAW replaced
+	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPosition)* vIndex, &vertices[0], GL_STATIC_DRAW);
 
 	glGenBuffers(1, &indexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -54,18 +51,18 @@ void renderObject::genBuffer(GLuint shader)
 	};
 
 	std::vector<indexArray> indexHolder;
-	for (int _w = 0; _w < width - 1; _w += quadSize) //_width of map
+	for (int _w = 0; _w < gridWidth; ++_w)
 	{
-		for (int _h = 0; _h < (height - 1); _h += quadSize) //_height of map
+		for (int _h = 0; _h < gridHeight; ++_h)
 		{
 			indexArray index;
-			index.v1 = _h + (1024 * _w);
-			index.v2 = (_h + 1) + (1024 * (_w + 1));
-			index.v3 = (_h + 1) + (1024 * _w);
+			index.v1 = _h + (mapWidth * _w);
+			index.v2 = (_h + 1) + (mapWidth * (_w + 1));
+			index.v3 = (_h + 1) + (mapWidth * _w);
 
 			indexArray index2;
 			index2.v1 = index.v1;
-			index2.v2 = _h + (1024 * (_w + 1));
+			index2.v2 = _h + (mapWidth * (_w + 1));
 			index2.v3 = index.v2;
 
 			indexHolder.push_back(index);
@@ -73,7 +70,7 @@ void renderObject::genBuffer(GLuint shader)
 		}
 	}
 	nrIndex = indexHolder.size();
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexArray) * indexHolder.size(), &indexHolder[0], GL_DYNAMIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexArray)* indexHolder.size(), &indexHolder[0], GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &vArray);
 	glBindVertexArray(vArray);
@@ -84,8 +81,8 @@ void renderObject::genBuffer(GLuint shader)
 
 	/// this should be moved out from this class
 	/// as it is bound to shader, and can be used across multiple objects
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertexMap), BUFFER_OFFSET(0));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vertexMap), BUFFER_OFFSET(sizeof(float)* 3));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosition), BUFFER_OFFSET(0));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosition), BUFFER_OFFSET(sizeof(float)* 3));
 	/// 
 
 	generated = true;
@@ -115,7 +112,7 @@ const GLfloat * renderObject::getModelMatrix() const
 renderObject::~renderObject()
 {
 	delete g_HeightMap;
-	delete vMap;
+	delete vertices;
 }
 
 void renderObject::render()
@@ -158,6 +155,7 @@ bool renderObject::loadRawFile(char* fileName)
 		{
 			loadFromFile = true;
 		}
+		
 	}
 	else
 	{
@@ -170,9 +168,9 @@ bool renderObject::loadRawFile(char* fileName)
 
 int renderObject::getHeight(int _x, int _y)
 {
-	// Force x and y to cap out at (mapSize - 1)
-	int x = _x % width;
-	int y = _y % height;
+	// Force x and y to cap at (mapSize - 1)
+	int x = _x % mapWidth;
+	int y = _y % mapHeight;
 
 	// Check if empty
 	if (!g_HeightMap)
@@ -182,5 +180,10 @@ int renderObject::getHeight(int _x, int _y)
 	}
 
 	// Treat the array like a 2D array (.raw format is a single array)
-	return g_HeightMap[x + (y * height)];	// Index into our height array and return the height
+	return g_HeightMap[x + (y * mapHeight)];	// Index into our height array and return the height
+}
+float renderObject::setVertexColor(int x, int y)
+{
+	float color = -0.15f + (getHeight(x, y) / 256.0f);
+	return color;
 }
