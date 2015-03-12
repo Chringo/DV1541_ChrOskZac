@@ -14,6 +14,7 @@ bool GBuffer::init(int width, int height)
 	glGenTextures(1, &diffuseTexture);
 	glGenTextures(1, &normalTexture);
 	glGenTextures(1, &worldPosTexture);
+
 	glGenTextures(1, &lightBuffer.lightTexture);
 
 	genQuad();
@@ -210,6 +211,9 @@ void GBuffer::draw()
 	glBindTexture(GL_TEXTURE_2D, normalTexture);
 	pos = glGetUniformLocation(compShader, "normalSampler");
 	glProgramUniform1i(compShader, pos, 1);
+
+	pos = glGetUniformLocation(compShader, "screensize");
+	glProgramUniform2f(compShader, pos, width, height);
 
 	float tx = ceilf((float)width / 32.0f);
 	float ty = ceilf((float)height / 32.0f);
