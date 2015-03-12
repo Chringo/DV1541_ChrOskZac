@@ -8,6 +8,9 @@
 scene::scene()
 {
 	shaderProgram = 0;
+
+	shadowViewMat = glm::lookAt(glm::vec3(3,8,-4), glm::vec3(0,0,0), glm::vec3(0,0,1));
+
 }
 
 scene::~scene()
@@ -61,12 +64,26 @@ void scene::renderScene()
 	GLuint viewMat = glGetUniformLocation(shaderProgram, "view");
 	GLuint projectionMat = glGetUniformLocation(shaderProgram, "projection");
 
-	const GLfloat * modelMatrix = obj.getModelMatrix();
+	const GLfloat* modelMatrix = obj.getModelMatrix();
 
 	glUniformMatrix4fv(modelMat, 1, GL_FALSE, modelMatrix);
 	glUniformMatrix4fv(viewMat, 1, GL_FALSE, &viewMatrix[0][0]);
 	glUniformMatrix4fv(projectionMat, 1, GL_FALSE, &projectionMatrix[0][0]);
 
+	obj.render();
+
+	gBuffer.bindShadow();
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+
+	glUseProgram(gBuffer.shadowShader);
+	modelMat = glGetUniformLocation(gBuffer.shadowShader, "model");
+	viewMat = glGetUniformLocation(gBuffer.shadowShader, "view");
+	projectionMat = glGetUniformLocation(gBuffer.shadowShader, "projection");
+	
+	glUniformMatrix4fv(modelMat, 1, GL_FALSE, modelMatrix);
+	glUniformMatrix4fv(viewMat, 1, GL_FALSE, &shadowViewMat[0][0]);
+	glUniformMatrix4fv(projectionMat, 1, GL_FALSE, &projectionMatrix[0][0]);
 	obj.render();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -151,6 +168,19 @@ void scene::generateShader()
 		gBuffer.compShader = program;
 	}
 
+	shaders[0] = "shaders/shadow_vs.glsl";
+	shaders[1] = "shaders/shadow_gs.glsl";
+	program = 0;
+
+	if (CreateProgram(program, shaders, shaderType, 2))
+	{
+		if (gBuffer.shadowShader != 0)
+		{
+			glDeleteProgram(gBuffer.shadowShader);
+		}
+		gBuffer.shadowShader = program;
+	}
+
 
 }
 
@@ -188,6 +218,7 @@ void scene::frameUpdate()
 	
 	viewMatrix = glm::mat4(cam.rot) * cam.translation;
 
+	gBuffer.setLightView(&shadowViewMat);
 	gBuffer.setProjectionAndView(&cam.projection, &viewMatrix);
 
 	// register new completed objects

@@ -21,7 +21,7 @@ void renderObject::genBuffer(GLuint shader)
 	std::string mtlFileName;
 	mtlContainer mtl;
 	
-	std::string fileName = "House.obj";
+	std::string fileName = "shadow.obj";
 	bool res = loadOBJ("Meshes/" + fileName, mtlFileName, objB, indexes);
 	bool res2 = loadMTL("Meshes/" + mtlFileName, mtl);
 	indexSize = indexes.size() / 3;

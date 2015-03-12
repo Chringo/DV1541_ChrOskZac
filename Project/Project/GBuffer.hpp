@@ -13,16 +13,19 @@ public:
 	bool init(int width, int height);
 
 	void bindDraw();
+	void bindShadow();
 	void bindRead();
 	void bindLightRead();
 
 	void update(int width, int height);
 	void setProjectionAndView(void * proj, void * view);
+	void setLightView(void* v);
 	void draw();
 
 	GLuint lightShader;
 	GLuint combineShader;
 	GLuint compShader;
+	GLuint shadowShader;
 
 	void streamLights(void*, int nrObj, int objSize);
 
@@ -39,6 +42,11 @@ private:
 	GLuint normalTexture;
 	GLuint worldPosTexture;
 	GLuint depthTexture;
+
+	GLuint shadowFbo;
+	GLuint shadowTexture;
+
+	void *lightVP;
 
 	struct LightBuffer
 	{
