@@ -67,6 +67,7 @@ renderWindow::renderWindow(GLFWwindow* window)
 {
 	this->window = window;
 	threadRunning = false;
+	speed = 1.0f;
 }
 
 renderWindow::~renderWindow()
@@ -135,27 +136,27 @@ void renderWindow::update()
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, forward*glm::vec3(0.1f, 0, -0.1));
+		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, forward*glm::vec3(speed, 0.0f, -speed));
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, forward*glm::vec3(-0.1f, 0, 0.1));
+		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, forward*glm::vec3(-speed, 0.0f, speed));
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, strafe*glm::vec3(0.1f, 0, -0.1f));
+		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, strafe*glm::vec3(speed, 0.0f, -speed));
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, strafe*glm::vec3(-0.1f, 0, 0.1));
+		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, strafe*glm::vec3(-speed, 0.0f, speed));
 	}
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
-		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, glm::vec3(0.0f, -0.1f, 0.0f));
+		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, glm::vec3(0.0f, -speed, 0.0f));
 	}
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
 	{
-		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, glm::vec3(0.0f, 0.1f, 0.0f));
+		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, glm::vec3(0.0f, speed, 0.0f));
 	}
 }
 

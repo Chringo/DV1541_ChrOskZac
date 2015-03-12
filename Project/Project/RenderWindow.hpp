@@ -25,6 +25,8 @@ private:
 
 	double oldx, oldy;
 
+	float speed; // Move speed
+
 	int windowX, windowY;
 
 	// render thread and render function
