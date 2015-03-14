@@ -87,6 +87,7 @@ private:
 
 	bool loadOBJ(std::string path, std::string & mtlFileName, std::vector < objBuffer > & out_objVec, std::vector <GLuint> & out_indexes);
 	bool loadMTL(std::string path, mtlContainer& mtl);
+	bool loadTexture(std::string path, GLuint &ID);
 
 	float ry = 0;
 
@@ -96,6 +97,8 @@ private:
 	GLuint vBuffer;
 	GLuint vArray;
 	GLuint indexBuffer;
+
+	GLuint textureID;
 
 	glm::mat4 modelMatrix;
 };

@@ -5,7 +5,12 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 #define BUFFER_OFFSET(i) ((char *)nullptr + (i))
+#define RGB 3
+#define RGBA 4
 
 renderObject::renderObject()
 {
@@ -23,8 +28,13 @@ void renderObject::genBuffer(GLuint shader)
 	
 	std::string fileName = "mustang.obj";
 	bool res = loadOBJ("Meshes/" + fileName, mtlFileName, objB, indexes);
-	bool res2 = loadMTL("Meshes/" + mtlFileName, mtl);
+
+	// Not really doing anything yet
+	//bool res2 = loadMTL("Meshes/" + mtlFileName, mtl);
+	
 	indexSize = indexes.size() / 3;
+
+	loadTexture("Meshes/mustang_24.png", textureID);
 
 	glGenBuffers(1, &vBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
@@ -221,6 +231,48 @@ bool renderObject::loadMTL(std::string path, mtlContainer& mtl)
 	fclose(file);
 
 	// Succes!
+	return true;
+}
+
+bool renderObject::loadTexture(std::string path, GLuint &ID)
+{
+	GLint wi;
+	GLint he;
+	GLint nrOfBytes;
+	unsigned char* image = stbi_load(path.data(), &wi, &he, &nrOfBytes, RGB);
+
+	if (image == nullptr)
+	{
+		std::string toPrint = "Failed to load image " + path;
+		fprintf(stdout, toPrint.data());
+		return false;
+	}
+
+	glGenTextures(1, &ID);
+
+	glBindTexture(GL_TEXTURE_2D, ID);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	if (nrOfBytes == 3)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, wi, he, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	}
+	else if (nrOfBytes == 4)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, wi, he, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+	}
+	else
+	{
+		fprintf(stdout, "Unexpected number of bytes in texture");
+		return false;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	stbi_image_free(image);
+
 	return true;
 }
 

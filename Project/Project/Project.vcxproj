@@ -41,8 +41,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>../glm;../glfw/include;../glew-1.11.0\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\glew-1.11.0\lib\Release\Win32;../glfw/lib-vc2013;$(LibraryPath)</LibraryPath>
+    <IncludePath>../glm;../glfw/include;../glew-1.11.0\include;../stb-master;$(IncludePath)</IncludePath>
+    <LibraryPath>../stb-master;..\glew-1.11.0\lib\Release\Win32;../glfw/lib-vc2013;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
