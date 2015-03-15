@@ -17,13 +17,13 @@ renderObject::renderObject()
 	mapWidth = 1024;
 	mapHeight = 1024;
 	mapSize = mapWidth * mapHeight;
-	quadSize = 1;
+	quadSize = 4;
 	g_HeightMap = new unsigned char[mapSize];
 
-	gridWidth = (mapWidth - 1) / quadSize;
-	gridHeight = (mapHeight - 1) / quadSize;
+	gridWidth = (mapWidth) / quadSize;
+	gridHeight = (mapHeight) / quadSize;
 
-	vertices = new VertexPosition[mapWidth * mapHeight];	// Allocate memory for the individual vertices of the terrain
+	vertices = new VertexPosition[gridHeight * gridWidth];	// Allocate memory for the individual vertices of the terrain
 	rgbColor = 1.0f;
 }
 
@@ -33,7 +33,7 @@ void renderObject::genBuffer(GLuint shader)
 	glBindBuffer(GL_ARRAY_BUFFER, VBOHeightMap);
 
 	int vIndex = 0;
-	for (int _w = 0; _w < mapWidth; ++_w/* += quadSize*/)
+	for (int _w = 0; _w < mapWidth; _w += quadSize)
 	{
 		for (int _h = 0; _h < mapHeight; _h += quadSize)
 		{
@@ -51,20 +51,20 @@ void renderObject::genBuffer(GLuint shader)
 	};
 
 	std::vector<IndexTriangle> indexHolder;
-	for (int _w = 0; _w < gridWidth; ++_w)
+	for (int _w = 0; _w < (gridWidth - 1); ++_w)
 	{
-		for (int _h = 0; _h < gridHeight; ++_h)
+		for (int _h = 0; _h < (gridHeight - 1); ++_h)
 		{
-			GLuint vertexIndex = (_w * mapWidth) + _h;
+			GLuint vertexIndex = (_w * gridWidth) + _h;
 
 			IndexTriangle top;
-			top.v0 = vertexIndex; // _h + (mapWidth * _w);
-			top.v1 = vertexIndex + mapWidth + 1; // (_h + 1) + (mapWidth * (_w + 1));
-			top.v2 = vertexIndex + 1; // (_h + 1) + (mapWidth * _w);
+			top.v0 = vertexIndex;
+			top.v1 = vertexIndex + gridWidth + 1;
+			top.v2 = vertexIndex + 1;
 
 			IndexTriangle bottom;
 			bottom.v0 = top.v0;
-			bottom.v1 = vertexIndex + mapWidth; // _h + (mapWidth * (_w + 1));
+			bottom.v1 = vertexIndex + gridWidth;
 			bottom.v2 = top.v1;
 
 			indexHolder.push_back(top);
