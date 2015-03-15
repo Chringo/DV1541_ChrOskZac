@@ -48,6 +48,8 @@ private:
 	glm::mat4 viewMatrix;
 	glm::mat4 projectionMatrix;
 
+	glm::mat4 shadowViewMat;
+
 	// our object
 	renderObject obj;
 };

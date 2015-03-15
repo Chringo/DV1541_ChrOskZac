@@ -9,11 +9,15 @@ bool GBuffer::init(int width, int height)
 {
 	glGenFramebuffers(1, &fbo);
 	glGenFramebuffers(1, &lightBuffer.fbo);
+	glGenFramebuffers(1, &shadowFbo);
 
 	glGenTextures(1, &depthTexture);
 	glGenTextures(1, &diffuseTexture);
 	glGenTextures(1, &normalTexture);
 	glGenTextures(1, &worldPosTexture);
+
+	glGenTextures(1, &shadowTexture);
+
 	glGenTextures(1, &lightBuffer.lightTexture);
 
 	genQuad();
@@ -103,6 +107,9 @@ bool GBuffer::setTextures(int width, int height)
 	glBindTexture(GL_TEXTURE_2D, depthTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 
 	GLenum DrawBuffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glDrawBuffers(3, DrawBuffers);
@@ -133,6 +140,30 @@ bool GBuffer::setTextures(int width, int height)
 		fprintf(stderr, "FB error, status: 0x%x\n", Status);
 		return false;
 	}
+
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	// shadow buffer
+
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, shadowFbo);
+	glBindTexture(GL_TEXTURE_2D, shadowTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTexture, 0);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+
+	DrawBuffers2[0] = GL_NONE;
+	glDrawBuffers(1, DrawBuffers2);
+
+	Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	if (Status != GL_FRAMEBUFFER_COMPLETE) {
+		fprintf(stderr, "FB error, status: 0x%x\n", Status);
+		return false;
+	}
+
+
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	// restore default FBO
 
@@ -162,6 +193,11 @@ void GBuffer::setProjectionAndView(void * proj, void * view)
 {
 	lightBuffer.proj = proj;
 	lightBuffer.view = view;
+}
+
+void GBuffer::setLightView(void* view)
+{
+	lightVP = view;
 }
 
 void GBuffer::draw()
@@ -196,6 +232,9 @@ void GBuffer::draw()
 	pos = glGetUniformLocation(compShader, "worldPos");
 	glProgramUniform1i(compShader, pos, 2);
 	*/
+
+	pos = glGetUniformLocation(compShader, "lightView");
+	glUniformMatrix4fv(pos, 1, GL_FALSE, (const GLfloat*)lightVP);
 	pos = glGetUniformLocation(compShader, "proj");
 	glUniformMatrix4fv(pos, 1, GL_FALSE, (const GLfloat*) lightBuffer.proj);
 	pos = glGetUniformLocation(compShader, "view");
@@ -210,6 +249,14 @@ void GBuffer::draw()
 	glBindTexture(GL_TEXTURE_2D, normalTexture);
 	pos = glGetUniformLocation(compShader, "normalSampler");
 	glProgramUniform1i(compShader, pos, 1);
+
+	glActiveTexture(GL_TEXTURE0 + 2);
+	glBindTexture(GL_TEXTURE_2D, shadowTexture);
+	pos = glGetUniformLocation(compShader, "shadowMap");
+	glProgramUniform1i(compShader, pos, 2);
+
+	pos = glGetUniformLocation(compShader, "screensize");
+	glProgramUniform2f(compShader, pos, width, height);
 
 	float tx = ceilf((float)width / 32.0f);
 	float ty = ceilf((float)height / 32.0f);
@@ -243,12 +290,19 @@ void GBuffer::draw()
 	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 	glActiveTexture(GL_TEXTURE0+1);
 	glBindTexture(GL_TEXTURE_2D, lightBuffer.lightTexture);
+	glActiveTexture(GL_TEXTURE0 + 2);
+	glBindTexture(GL_TEXTURE_2D, shadowTexture);
+
 
 	pos = glGetUniformLocation(combineShader, "diffuse");
 	glProgramUniform1i(combineShader, pos, 0);
 	pos = glGetUniformLocation(combineShader, "lightMap");
 	glProgramUniform1i(combineShader, pos, 1);
 	
+	pos = glGetUniformLocation(combineShader, "shadowMap");
+	glProgramUniform1i(combineShader, pos, 2);
+
+
 	// drwa quad, on backbugffer
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -258,6 +312,11 @@ void GBuffer::draw()
 void GBuffer::bindDraw()
 {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+}
+
+void GBuffer::bindShadow()
+{
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, shadowFbo);
 }
 
 void GBuffer::bindRead()
