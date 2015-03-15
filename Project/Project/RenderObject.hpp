@@ -23,15 +23,6 @@ public:
 	// ability to get the modelmatrix for objects, these are unique
 	const GLfloat * getModelMatrix() const;
 
-private:
-	GLuint indexSize;
-
-	struct objBuffer
-	{
-		GLfloat vertices[3];
-		GLfloat uvs[2];
-		GLfloat vns[3];
-	};
 	struct myVec3
 	{
 		GLfloat pos[3];
@@ -53,14 +44,23 @@ private:
 
 	mtlContainer mtl;
 
+private:
+	GLuint indexSize;
+
+	struct objBuffer
+	{
+		GLfloat vertices[3];
+		GLfloat uvs[2];
+		GLfloat vns[3];
+	};
+
 	bool loadOBJ(std::string path, std::string & mtlFileName, std::vector < objBuffer > & out_objVec, std::vector <GLuint> & out_indexes);
+	
+	// Only supports to load one (1) material
 	bool loadMTL(std::string path, mtlContainer& mtl);
 	bool loadTexture(std::string path, GLuint &ID);
 
 	float ry = 0;
-
-	// vArray should be moved out from this class
-	// and probably bound to a shader within its own class
 
 	GLuint vBuffer;
 	GLuint vArray;

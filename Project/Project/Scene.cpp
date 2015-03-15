@@ -27,7 +27,7 @@ bool scene::requestBuffer(int width, int height)
 
 	gBuffer.setProjectionAndView(&cam.projection, &viewMatrix);
 
-	unsigned int nr;
+	GLuint nr;
 
 	Light * l = readLights("scene.light", nr);
 
@@ -98,12 +98,12 @@ camera &scene::getCamera()
 // generate the shader
 void scene::generateShader()
 {
-	std::string shaders[] = {"shaders/fbo_vs.glsl", "shaders/fbo_gs.glsl", "shaders/fbo_fs.glsl"};
-	GLenum shaderType[] = { GL_VERTEX_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER };
+	std::string vboShaders[] = {"shaders/fbo_vs.glsl", "shaders/fbo_gs.glsl", "shaders/fbo_fs.glsl"};
+	GLenum vboShaderType[] = { GL_VERTEX_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER };
 
 	GLuint program = 0;
 
-	if (CreateProgram(program, shaders, shaderType, 3))
+	if (CreateProgram(program, vboShaders, vboShaderType, 3))
 	{
 		if (fboShader != 0)
 		{
@@ -112,12 +112,12 @@ void scene::generateShader()
 		fboShader = program;
 	}
 
-	std::string shader[] = { "shaders/quad_vs.glsl", "shaders/quad_fs.glsl" };
-	GLenum shadeType[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
+	std::string quadShaders[] = { "shaders/quad_vs.glsl", "shaders/quad_fs.glsl" };
+	GLenum quadShaderType[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
 
 	program = 0;
 
-	if (CreateProgram(program, shader, shadeType, 2))
+	if (CreateProgram(program, quadShaders, quadShaderType, 2))
 	{
 		if (gBuffer.combineShader != 0)
 		{
@@ -126,33 +126,19 @@ void scene::generateShader()
 		gBuffer.combineShader = program;
 	}
 
-	shader[1] = "shaders/light_fs.glsl";
+	std::string lightShader = "shaders/light_cs.glsl";
+	GLenum lightShaderType = GL_COMPUTE_SHADER;
 
 	program = 0;
 
-	if (CreateProgram(program, shader, shadeType, 2))
+	if (CreateProgram(program, &lightShader, &lightShaderType, 1))
 	{
 		if (gBuffer.lightShader != 0)
-		{
-			glDeleteProgram(gBuffer.lightShader);
-		}
-		gBuffer.lightShader = program;
-	}
-
-	shader[0] = "shaders/light_cs.glsl";
-	shadeType[0] = GL_COMPUTE_SHADER;
-	program = 0;
-
-	if (CreateProgram(program, shader, shadeType, 1))
-	{
-		if (gBuffer.compShader != 0)
 		{
 			glDeleteProgram(gBuffer.compShader);
 		}
 		gBuffer.compShader = program;
 	}
-
-
 }
 
 void scene::screenChanged()
@@ -185,11 +171,8 @@ void scene::frameUpdate()
 		Sleep(200);
 		reloadShader = false;
 	}
-	// update camera
 	
+	// update camera and projection matrix
 	viewMatrix = glm::mat4(cam.rot) * cam.translation;
-
 	gBuffer.setProjectionAndView(&cam.projection, &viewMatrix);
-
-	// register new completed objects
 }

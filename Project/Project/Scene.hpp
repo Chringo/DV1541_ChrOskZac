@@ -44,15 +44,11 @@ private:
 
 	GLuint fboShader;
 
-	// when we have multiple objects render them all using loops
-	vector<renderObject> objects;
-	vector<renderObject> newRegisterObjects;
-
 	// view projection matrices
 	glm::mat4 viewMatrix;
 	glm::mat4 projectionMatrix;
 
-	// our temp object
+	// our object
 	renderObject obj;
 };
 
