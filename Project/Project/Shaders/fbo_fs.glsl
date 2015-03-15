@@ -14,7 +14,7 @@ layout (location = 2) out vec3 worldOut;
 
 void main ()
 {
-	vec4 textureColor = texture(objTexture, textureNormal); 
+	vec4 textureColor = texture(objTexture, vec2(textureNormal.x, 1-textureNormal.y)); 
 	diffuseOut = textureColor.rgb * color;
 	normalOut = normalize(normal);
 	worldOut = worldPos;
