@@ -24,17 +24,15 @@ void renderObject::genBuffer(GLuint shader)
 	std::vector< GLuint > indexes;
 	std::vector < objBuffer > objB;
 	std::string mtlFileName;
-	mtlContainer mtl;
 	
 	std::string fileName = "mustang.obj";
-	bool res = loadOBJ("Meshes/" + fileName, mtlFileName, objB, indexes);
-
-	// Not really doing anything yet
-	//bool res2 = loadMTL("Meshes/" + mtlFileName, mtl);
+	bool res;
 	
-	indexSize = indexes.size() / 3;
+	res = loadOBJ(MESH_FOLDER + fileName, mtlFileName, objB, indexes);
+	res = loadMTL(MESH_FOLDER + mtlFileName, mtl);
+	res = loadTexture(MESH_FOLDER + mtl.texturePath, textureID);
 
-	loadTexture("Meshes/mustang_24.png", textureID);
+	indexSize = indexes.size() / 3;
 
 	glGenBuffers(1, &vBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
@@ -87,20 +85,13 @@ bool renderObject::loadOBJ(std::string path, std::string & mtlFileName,
 	std::vector < myVec3 > vertices;
 	std::vector < myVec2 > uvs;
 	std::vector < myVec3 > normals;
-	
-	struct face
-	{
-		GLuint v[3];
-		GLuint uv[3];
-		GLuint vn[3];
-	};
-	std::vector < face > faces;
 
 	FILE * file;
 	fopen_s(&file, path.data(), "r");
 
 	fprintf(stdout, "Reading file\n");
 
+	GLuint index = 0;
 	while (1){
 		char lineHeader[128];
 
@@ -144,46 +135,51 @@ bool renderObject::loadOBJ(std::string path, std::string & mtlFileName,
 		}
 		else if (strcmp(lineHeader, "f") == 0)
 		{
-			face temp;
-			fscanf_s(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &temp.v[0], &temp.uv[0], &temp.vn[0], &temp.v[1], &temp.uv[1], &temp.vn[1], &temp.v[2], &temp.uv[2], &temp.vn[2]);
+			struct face
+			{
+				GLuint v[3];
+				GLuint uv[3];
+				GLuint vn[3];
+			};
+
+			face faceL;
+			fscanf_s(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &faceL.v[0], &faceL.uv[0], &faceL.vn[0], &faceL.v[1], &faceL.uv[1], &faceL.vn[1], &faceL.v[2], &faceL.uv[2], &faceL.vn[2]);
 
 			for (GLuint i = 0; i < 3; i++)
 			{
-				temp.v[i] --;
-				temp.uv[i] --;
-				temp.vn[i] --;
+				faceL.v[i] --;
+				faceL.uv[i] --;
+				faceL.vn[i] --;
 			}
-			
-			faces.push_back(temp);
+
+			// Put the v/vt/vn into the right order and push into vector<objBuffer> 
+			for (size_t j = 0; j < 3; j++)
+			{
+				objBuffer temp;
+
+				// Copying vertices
+				temp.vertices[0] = vertices[faceL.v[j]].pos[0];
+				temp.vertices[1] = vertices[faceL.v[j]].pos[1];
+				temp.vertices[2] = vertices[faceL.v[j]].pos[2];
+
+				// Copying texture normals
+				temp.uvs[0] = uvs[faceL.uv[j]].pos[0];
+				temp.uvs[1] = uvs[faceL.uv[j]].pos[1];
+
+				// Copying vertex normals
+				temp.vns[0] = normals[faceL.vn[j]].pos[0];
+				temp.vns[1] = normals[faceL.vn[j]].pos[1];
+				temp.vns[2] = normals[faceL.vn[j]].pos[2];
+
+				out_objVec.push_back(temp);
+
+				// push indexes into index buffer :-)
+				out_indexes.push_back(index++);
+			}
 		}
 	}
 
 	fprintf(stdout, "Generating vertices\n");
-
-	for (size_t i = 0; i < faces.size(); i++)
-	{
-		for (size_t j = 0; j < 3; j++)
-		{
-			objBuffer temp;
-
-			// Copying vertices
-			temp.vertices[0] = vertices[faces[i].v[j]].pos[0];
-			temp.vertices[1] = vertices[faces[i].v[j]].pos[1];
-			temp.vertices[2] = vertices[faces[i].v[j]].pos[2];
-
-			// Copying texture normals
-			temp.uvs[0] = uvs[faces[i].uv[j]].pos[0];
-			temp.uvs[1] = uvs[faces[i].uv[j]].pos[1];
-
-			// Copying vertex normals
-			temp.vns[0] = normals[faces[i].vn[j]].pos[0];
-			temp.vns[1] = normals[faces[i].vn[j]].pos[1];
-			temp.vns[2] = normals[faces[i].vn[j]].pos[2];
-
-			out_objVec.push_back(temp);
-			out_indexes.push_back(3*i + j);
-		}
-	}
 
 	//Succes!
 	fclose(file);
@@ -219,6 +215,12 @@ bool renderObject::loadMTL(std::string path, mtlContainer& mtl)
 		else if (strcmp(lineHeader, "Ks") == 0)
 		{
 			fscanf_s(file, "%f %f %f\n", &mtl.Ks.pos[0], &mtl.Ks.pos[1], &mtl.Ks.pos[2]);
+		}
+		else if (strcmp(lineHeader, "map_Kd") == 0)
+		{
+			char fileName[100];
+			fscanf_s(file, "%s", fileName, sizeof(fileName));
+			mtl.texturePath = std::string(fileName);
 		}
 		/*******************************************************************************/
 		// d (ignore)
