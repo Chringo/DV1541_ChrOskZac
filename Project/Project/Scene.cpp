@@ -8,6 +8,9 @@
 scene::scene()
 {
 	fboShader = 0;
+
+	shadowViewMat = glm::lookAt(glm::vec3(3,8,-4), glm::vec3(0,0,0), glm::vec3(0,0,1));
+
 }
 
 scene::~scene()
@@ -62,13 +65,27 @@ void scene::renderScene()
 	GLuint viewMat = glGetUniformLocation(fboShader, "view");
 	GLuint projectionMat = glGetUniformLocation(fboShader, "projection");
 
-	const GLfloat * modelMatrix = obj.getModelMatrix();
+	const GLfloat* modelMatrix = obj.getModelMatrix();
 
 	glUniformMatrix4fv(modelMat, 1, GL_FALSE, modelMatrix);
 	glUniformMatrix4fv(viewMat, 1, GL_FALSE, &viewMatrix[0][0]);
 	glUniformMatrix4fv(projectionMat, 1, GL_FALSE, &projectionMatrix[0][0]);
 
 	obj.render(fboShader);
+
+	gBuffer.bindShadow();
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+
+	glUseProgram(gBuffer.shadowShader);
+	modelMat = glGetUniformLocation(gBuffer.shadowShader, "model");
+	viewMat = glGetUniformLocation(gBuffer.shadowShader, "view");
+	projectionMat = glGetUniformLocation(gBuffer.shadowShader, "projection");
+	
+	glUniformMatrix4fv(modelMat, 1, GL_FALSE, modelMatrix);
+	glUniformMatrix4fv(viewMat, 1, GL_FALSE, &shadowViewMat[0][0]);
+	glUniformMatrix4fv(projectionMat, 1, GL_FALSE, &projectionMatrix[0][0]);
+	obj.render(-1);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -139,6 +156,20 @@ void scene::generateShader()
 		}
 		gBuffer.compShader = program;
 	}
+	std::string shadowShaders[] = { "shaders/shadow_vs.glsl", "shaders/shadow_gs.glsl"};
+	GLenum shadowShaderType[] = { GL_VERTEX_SHADER, GL_GEOMETRY_SHADER };
+
+	program = 0;
+
+	if (CreateProgram(program, shadowShaders, shadowShaderType, 2))
+	{
+		if (gBuffer.shadowShader != 0)
+		{
+			glDeleteProgram(gBuffer.shadowShader);
+		}
+		gBuffer.shadowShader = program;
+	}
+
 }
 
 void scene::screenChanged()
@@ -174,5 +205,7 @@ void scene::frameUpdate()
 	
 	// update camera and projection matrix
 	viewMatrix = glm::mat4(cam.rot) * cam.translation;
+
+	gBuffer.setLightView(&shadowViewMat);
 	gBuffer.setProjectionAndView(&cam.projection, &viewMatrix);
 }

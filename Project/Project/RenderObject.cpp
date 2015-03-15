@@ -285,12 +285,16 @@ void renderObject::render(GLuint shader)
 	glBindVertexArray(vArray);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-	/******************TEXTURE******************************/
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureID);
-	GLuint pos = glGetUniformLocation(shader, "objTexture");
-	glProgramUniform1i(shader, pos, 0);
-	/*******************************************************/
+	if (shader != -1)
+	{
+		/******************TEXTURE******************************/
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		GLuint pos = glGetUniformLocation(shader, "objTexture");
+		glProgramUniform1i(shader, pos, 0);
+		/*******************************************************/
+	}
+	
 
 	// draw points 0-3 from the currently bound VAO with current in-use shader
 	glDrawElements(GL_TRIANGLES, indexSize * sizeof(GLuint), GL_UNSIGNED_INT, (void*)0);
