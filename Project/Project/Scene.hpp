@@ -32,6 +32,9 @@ public:
 	void screenChanged();
 	void queueReloadShader();
 
+	// our temp object
+	renderObject obj;
+
 private:
 
 	bool updateGBuffer;
@@ -55,8 +58,6 @@ private:
 	glm::mat4 viewMatrix;
 	glm::mat4 projectionMatrix;
 
-	// our temp object
-	renderObject obj;
 };
 
 #endif

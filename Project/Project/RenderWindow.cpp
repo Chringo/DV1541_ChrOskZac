@@ -77,6 +77,7 @@ renderWindow::~renderWindow()
 
 void renderWindow::createThread()
 {
+	mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, glm::vec3(0, -100, 0));
 	threadPointer = new std::thread(&renderWindow::renderThread, this);
 	if (threadPointer)
 	{
@@ -158,6 +159,22 @@ void renderWindow::update()
 	{
 		mainScene.getCamera().translation = glm::translate(mainScene.getCamera().translation, glm::vec3(0.0f, speed, 0.0f));
 	}
+
+	glm::mat4 mat = mainScene.getCamera().translation;
+
+	glm::vec3 camPos = glm::vec3(mat[3]);
+
+	float x = -camPos[0];
+	float z = -camPos[2];
+	int y = 0;
+	if (x > 0 && x < 1024 && z > 0 && z < 1024)
+	{
+		 y = mainScene.obj.getHeight(x, z);
+		 mainScene.getCamera().translation[3] = glm::vec4(-x, -(y + 10), -z, 1.0);
+	}
+	
+	int something = 0;
+
 }
 
 void renderWindow::renderThread()
