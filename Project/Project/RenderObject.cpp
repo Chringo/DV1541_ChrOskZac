@@ -249,7 +249,6 @@ bool renderObject::loadTexture(std::string path, GLuint &ID)
 	}
 
 	glGenTextures(1, &ID);
-
 	glBindTexture(GL_TEXTURE_2D, ID);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -269,8 +268,6 @@ bool renderObject::loadTexture(std::string path, GLuint &ID)
 		return false;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, 0);
-
 	stbi_image_free(image);
 
 	return true;
@@ -281,11 +278,18 @@ renderObject::~renderObject()
 
 }
 
-void renderObject::render()
+void renderObject::render(GLuint shader)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, vBuffer);
 	glBindVertexArray(vArray);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+
+	/******************TEXTURE*******************/
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	GLuint pos = glGetUniformLocation(shader, "objTexture");
+	glProgramUniform1i(shader, pos, 0);
+	/********************************************/
 
 	// draw points 0-3 from the currently bound VAO with current in-use shader
 	glDrawElements(GL_TRIANGLES, indexSize * sizeof(GLuint), GL_UNSIGNED_INT, (void*)0);

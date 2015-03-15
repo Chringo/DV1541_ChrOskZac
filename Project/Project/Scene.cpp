@@ -7,7 +7,7 @@
 
 scene::scene()
 {
-	shaderProgram = 0;
+	fboShader = 0;
 }
 
 scene::~scene()
@@ -35,7 +35,7 @@ bool scene::requestBuffer(int width, int height)
 
 	delete l;
 
-	obj.genBuffer(shaderProgram);
+	obj.genBuffer(fboShader);
 
 	return true;
 }
@@ -56,11 +56,11 @@ void scene::renderScene()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	
-	glUseProgram(shaderProgram);
+	glUseProgram(fboShader);
 
-	GLuint modelMat = glGetUniformLocation(shaderProgram, "model");
-	GLuint viewMat = glGetUniformLocation(shaderProgram, "view");
-	GLuint projectionMat = glGetUniformLocation(shaderProgram, "projection");
+	GLuint modelMat = glGetUniformLocation(fboShader, "model");
+	GLuint viewMat = glGetUniformLocation(fboShader, "view");
+	GLuint projectionMat = glGetUniformLocation(fboShader, "projection");
 
 	const GLfloat * modelMatrix = obj.getModelMatrix();
 
@@ -68,7 +68,7 @@ void scene::renderScene()
 	glUniformMatrix4fv(viewMat, 1, GL_FALSE, &viewMatrix[0][0]);
 	glUniformMatrix4fv(projectionMat, 1, GL_FALSE, &projectionMatrix[0][0]);
 
-	obj.render();
+	obj.render(fboShader);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -105,11 +105,11 @@ void scene::generateShader()
 
 	if (CreateProgram(program, shaders, shaderType, 3))
 	{
-		if (shaderProgram != 0)
+		if (fboShader != 0)
 		{
-			glDeleteProgram(shaderProgram);
+			glDeleteProgram(fboShader);
 		}
-		shaderProgram = program;
+		fboShader = program;
 	}
 
 	std::string shader[] = { "shaders/quad_vs.glsl", "shaders/quad_fs.glsl" };

@@ -42,7 +42,7 @@ private:
 
 	void generateShader();
 
-	GLuint shaderProgram;
+	GLuint fboShader;
 
 	// when we have multiple objects render them all using loops
 	vector<renderObject> objects;

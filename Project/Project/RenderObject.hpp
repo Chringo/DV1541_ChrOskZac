@@ -12,7 +12,7 @@ public:
 	renderObject();
 	virtual ~renderObject();
 
-	void render();
+	void render(GLuint shader);
 
 	void genBuffer(GLuint shader);
 	void update();

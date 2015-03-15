@@ -9,10 +9,13 @@ uniform mat4 projection;
 
 in vec3 colorG[];
 in vec3 worldPosG[];
+in vec2 uv[];
 in vec3 vn[];
+
 
 out vec3 color;
 out vec3 normal;
+out vec2 textureNormal;
 out vec3 worldPos;
 
 void main () {
@@ -30,6 +33,7 @@ void main () {
 			{
 				gl_Position =  projection * view * model * gl_in[i].gl_Position;
 				color = colorG[i];
+				textureNormal = uv[i];
 				normal = normalize((model * vec4(vn[i], 0.0f)).xyz);
 				worldPos = (model * vec4(worldPosG[i], 1.0f)).xyz;
 				EmitVertex();
