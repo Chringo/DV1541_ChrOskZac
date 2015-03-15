@@ -37,12 +37,33 @@ const int sample_count = 16;
 
 vec3 pSphere[16] = vec3[](vec3(0.53812504, 0.18565957, -0.43192),vec3(0.13790712, 0.24864247, 0.44301823),vec3(0.33715037, 0.56794053, -0.005789503),vec3(-0.6999805, -0.04511441, -0.0019965635),vec3(0.06896307, -0.15983082, -0.85477847),vec3(0.056099437, 0.006954967, -0.1843352),vec3(-0.014653638, 0.14027752, 0.0762037),vec3(0.010019933, -0.1924225, -0.034443386),vec3(-0.35775623, -0.5301969, -0.43581226),vec3(-0.3169221, 0.106360726, 0.015860917),vec3(0.010350345, -0.58698344, 0.0046293875),vec3(-0.08972908, -0.49408212, 0.3287904),vec3(0.7119986, -0.0154690035, -0.09183723),vec3(-0.053382345, 0.059675813, -0.5411899),vec3(0.035267662, -0.063188605, 0.54602677),vec3(-0.47761092, 0.2847911, -0.0271716));
 
-
 layout (local_size_x = WORKGROUP_SIZE, local_size_y = WORKGROUP_SIZE) in;
+
+vec2 size;
+
+
+// failed blur....
+// somewhat works
+vec4 multisample(sampler2D tex, vec2 coords)
+{
+    vec4 add = vec4(0.0);
+    int samples = 0;
+    float[] kernel = {(1.0/16.0), (1.0/8.0), (1.0/16.0), (1.0/8.0), (1.0/4.0), (1.0/8.0), (1.0/16.0), (1.0/8.0), (1.0/16.0)};
+    for(int x = -1; x < 1; x++)
+    {
+        for(int y = -1; y < 1; y++)
+        {
+          add += texture(tex, coords + vec2(x, y)/size );
+          samples++;
+        }
+    }
+    add /= samples;
+    return add;
+}
 
 void main()
 {
-    vec2 size = screensize;
+    size = screensize;
     
 	ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
     
@@ -202,10 +223,10 @@ void main()
     
     float cosTheta = dot(normalize(wNorm.xyz), vec3(1));
     
-    float bias = 0.005*tan(acos(cosTheta)); // cosTheta is dot( n,l ), clamped between 0 and 1
-    bias = clamp(bias, 0.0, 0.01);
+    float bias = 0.001*tan(acos(cosTheta)); // cosTheta is dot( n,l ), clamped between 0 and 1
+    bias = clamp(bias, 0.0, 0.0001);
     
-    if ( texture( shadowMap, shadowCoord.xy ).x  > (shadowCoord.z - bias))
+    if ( multisample( shadowMap, shadowCoord.xy ).x  > (shadowCoord.z - bias))
     {
         shadowFactor = 0.2;
     }
