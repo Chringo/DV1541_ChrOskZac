@@ -54,7 +54,7 @@ private:
 
 	GLuint VBOHeightMap;
 	GLuint nrIndex;
-	GLuint vArray;
+	GLuint VAOHeightMap;
 	GLuint indexBuffer;
 
 	glm::mat4 modelMatrix;

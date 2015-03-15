@@ -20,8 +20,8 @@ renderObject::renderObject()
 	quadSize = 4;
 	g_HeightMap = new unsigned char[mapSize];
 
-	gridWidth = (mapWidth) / quadSize;
-	gridHeight = (mapHeight) / quadSize;
+	gridWidth = mapWidth / quadSize;
+	gridHeight = mapHeight / quadSize;
 
 	vertices = new VertexPosition[gridHeight * gridWidth];	// Allocate memory for the individual vertices of the terrain
 	rgbColor = 1.0f;
@@ -74,8 +74,8 @@ void renderObject::genBuffer(GLuint shader)
 	nrIndex = indexHolder.size();
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(IndexTriangle)* indexHolder.size(), &indexHolder[0], GL_STATIC_DRAW);
 
-	glGenVertexArrays(1, &vArray);
-	glBindVertexArray(vArray);
+	glGenVertexArrays(1, &VAOHeightMap);
+	glBindVertexArray(VAOHeightMap);
 
 	glEnableVertexAttribArray(0); //the vertex attribute object will remember its enabled attributes
 	glEnableVertexAttribArray(1);
@@ -120,13 +120,12 @@ renderObject::~renderObject()
 void renderObject::render()
 {
 
-	//glBindBuffer(GL_ARRAY_BUFFER, VBOHeightMap);
-	glBindVertexArray(vArray);
+	glBindBuffer(GL_ARRAY_BUFFER, VBOHeightMap);
+	glBindVertexArray(VAOHeightMap);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
 	// draw points 0-3 from the currently bound VAO with current in-use shader
 	glDrawElements(GL_TRIANGLES, 12 * nrIndex, GL_UNSIGNED_INT, (void*)0);
-	/*	glDrawArrays(GL_TRIANGLE_STRIP, 0, 256 * 256);*/
 
 }
 

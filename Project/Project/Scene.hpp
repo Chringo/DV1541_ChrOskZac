@@ -32,14 +32,14 @@ public:
 	void screenChanged();
 	void queueReloadShader();
 
+	// our temp object
+	renderObject obj;
 private:
 
 	bool updateGBuffer;
 	bool reloadShader;
 	
 	GBuffer gBuffer;
-
-	HeightMap* hMap;
 
 	camera cam;
 
@@ -54,9 +54,6 @@ private:
 	// view projection matrices
 	glm::mat4 viewMatrix;
 	glm::mat4 projectionMatrix;
-
-	// our temp object
-	renderObject obj;
 };
 
 #endif
