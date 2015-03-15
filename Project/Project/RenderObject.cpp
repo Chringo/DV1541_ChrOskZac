@@ -20,8 +20,8 @@ renderObject::renderObject()
 	quadSize = 1;
 	g_HeightMap = new unsigned char[mapSize];
 
-	gridWidth = mapWidth - 1;
-	gridHeight = mapHeight - 1;
+	gridWidth = (mapWidth - 1) / quadSize;
+	gridHeight = (mapHeight - 1) / quadSize;
 
 	vertices = new VertexPosition[mapWidth * mapHeight];	// Allocate memory for the individual vertices of the terrain
 	rgbColor = 1.0f;
@@ -29,13 +29,13 @@ renderObject::renderObject()
 
 void renderObject::genBuffer(GLuint shader)
 {
-	glGenBuffers(1, &dataMap);
-	glBindBuffer(GL_ARRAY_BUFFER, dataMap);
+	glGenBuffers(1, &VBOHeightMap);
+	glBindBuffer(GL_ARRAY_BUFFER, VBOHeightMap);
 
 	int vIndex = 0;
-	for (int _w = 0; _w < mapWidth; ++_w)
+	for (int _w = 0; _w < mapWidth; ++_w/* += quadSize*/)
 	{
-		for (int _h = 0; _h < mapHeight; ++_h)
+		for (int _h = 0; _h < mapHeight; _h += quadSize)
 		{
 			rgbColor = setVertexColor(_w, _h);
 			vertices[vIndex++] = VertexPosition{ _w, (getHeight(_w, _h) - 150), _h, rgbColor, rgbColor, rgbColor };
@@ -45,32 +45,34 @@ void renderObject::genBuffer(GLuint shader)
 
 	glGenBuffers(1, &indexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-	struct indexArray
+	struct IndexTriangle
 	{
-		GLuint v1, v2, v3;
+		GLuint v0, v1, v2;
 	};
 
-	std::vector<indexArray> indexHolder;
+	std::vector<IndexTriangle> indexHolder;
 	for (int _w = 0; _w < gridWidth; ++_w)
 	{
 		for (int _h = 0; _h < gridHeight; ++_h)
 		{
-			indexArray index;
-			index.v1 = _h + (mapWidth * _w);
-			index.v2 = (_h + 1) + (mapWidth * (_w + 1));
-			index.v3 = (_h + 1) + (mapWidth * _w);
+			GLuint vertexIndex = (_w * mapWidth) + _h;
 
-			indexArray index2;
-			index2.v1 = index.v1;
-			index2.v2 = _h + (mapWidth * (_w + 1));
-			index2.v3 = index.v2;
+			IndexTriangle top;
+			top.v0 = vertexIndex; // _h + (mapWidth * _w);
+			top.v1 = vertexIndex + mapWidth + 1; // (_h + 1) + (mapWidth * (_w + 1));
+			top.v2 = vertexIndex + 1; // (_h + 1) + (mapWidth * _w);
 
-			indexHolder.push_back(index);
-			indexHolder.push_back(index2);
+			IndexTriangle bottom;
+			bottom.v0 = top.v0;
+			bottom.v1 = vertexIndex + mapWidth; // _h + (mapWidth * (_w + 1));
+			bottom.v2 = top.v1;
+
+			indexHolder.push_back(top);
+			indexHolder.push_back(bottom);
 		}
 	}
 	nrIndex = indexHolder.size();
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexArray)* indexHolder.size(), &indexHolder[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(IndexTriangle)* indexHolder.size(), &indexHolder[0], GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &vArray);
 	glBindVertexArray(vArray);
@@ -82,7 +84,7 @@ void renderObject::genBuffer(GLuint shader)
 	/// this should be moved out from this class
 	/// as it is bound to shader, and can be used across multiple objects
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosition), BUFFER_OFFSET(0));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosition), BUFFER_OFFSET(sizeof(float)* 3));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPosition), BUFFER_OFFSET(sizeof(float) * 3));
 	/// 
 
 	generated = true;
@@ -96,7 +98,7 @@ void renderObject::update()
 		0.0f, 1.0f, 0.0f, 0.0f,
 		sin((glm::pi<float>() / 180)*ry), 0.0f, cos((glm::pi<float>() / 180)*ry), 0.0f,
 		0.0f, 0.0f, 0.0f, 1.0f);
-	
+
 	modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0, 0, -2.0));
 	modelMatrix = modelMatrix * rotMatrix;
 
@@ -117,14 +119,14 @@ renderObject::~renderObject()
 
 void renderObject::render()
 {
-	
-	glBindBuffer(GL_ARRAY_BUFFER, dataMap);
+
+	//glBindBuffer(GL_ARRAY_BUFFER, VBOHeightMap);
 	glBindVertexArray(vArray);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
 	// draw points 0-3 from the currently bound VAO with current in-use shader
 	glDrawElements(GL_TRIANGLES, 12 * nrIndex, GL_UNSIGNED_INT, (void*)0);
-/*	glDrawArrays(GL_TRIANGLE_STRIP, 0, 256 * 256);*/
+	/*	glDrawArrays(GL_TRIANGLE_STRIP, 0, 256 * 256);*/
 
 }
 
@@ -155,7 +157,7 @@ bool renderObject::loadRawFile(char* fileName)
 		{
 			loadFromFile = true;
 		}
-		
+
 	}
 	else
 	{

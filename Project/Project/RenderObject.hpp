@@ -45,15 +45,15 @@ private:
 		GLfloat r, g, b;
 	};
 	VertexPosition* vertices;	// Formerly known as vertexMap* vMap
-	float rgbColor;
+	GLfloat rgbColor;
 
 	float ry = 0;
 
 	// vArray should be moved out from this class
 	// and probably bound to a shader within its own class
 
+	GLuint VBOHeightMap;
 	GLuint nrIndex;
-	GLuint dataMap;
 	GLuint vArray;
 	GLuint indexBuffer;
 
