@@ -38,7 +38,7 @@ void renderObject::genBuffer(GLuint shader)
 		for (int _h = 0; _h < mapHeight; _h += quadSize)
 		{
 			rgbColor = setVertexColor(_w, _h);
-			vertices[vIndex++] = VertexPosition{ _w, (getHeight(_w, _h) - 150), _h, rgbColor, rgbColor, rgbColor };
+			vertices[vIndex++] = VertexPosition{ _w, (getHeight(_w, _h)), _h, rgbColor, rgbColor, rgbColor };
 		}
 	}
 	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPosition)* vIndex, &vertices[0], GL_STATIC_DRAW);
