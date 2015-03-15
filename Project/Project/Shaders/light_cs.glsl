@@ -203,14 +203,18 @@ void main()
     float cosTheta = dot(normalize(wNorm.xyz), vec3(1));
     
     float bias = 0.005*tan(acos(cosTheta)); // cosTheta is dot( n,l ), clamped between 0 and 1
-    bias = clamp(bias, 0.0001, 0.01);
+    bias = clamp(bias, 0.0, 0.01);
     
     if ( texture( shadowMap, shadowCoord.xy ).x  > (shadowCoord.z - bias))
     {
         shadowFactor = 0.2;
     }
     
-    vec3 finalColor = shadowFactor * lightColor.rgb * (vec3(0.1) + ao) * 2;
+    vec3 s = normalize(vec3(vec3(3.0,8.0,-4.0) - position.xyz));
+    
+    float shadowLight = max(dot(wNorm.xyz, s), 0.0);
+    
+    vec3 finalColor = vec3(1.0, 1.0, 1.0) * shadowLight * shadowFactor + shadowFactor * lightColor.rgb * (vec3(0.1) + ao) * 2;
     
     imageStore(destTex, pixelPos, vec4(finalColor, 0.0f));
 }
