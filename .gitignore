@@ -2,7 +2,7 @@
 *.slo
 *.lo
 *.o
-//*.obj på grund av anledningar
+//*.obj some .obj because of obj loader for meshes
 
 # Precompiled Headers
 *.gch
@@ -28,11 +28,13 @@
 *.app
 
 #DV1541
+Project/Project/Debug
 Project/Project/Debug/vc120.idb
 Project/Project/Debug/vc120.pdb
 Project/Debug/Project.ilk
 Project/Debug/Project.pdb
 Project/Project.v12.suo
 Project/Project.sdf
+Project/Project.opensdf
 *.tlog
 *.log
