@@ -7,6 +7,18 @@
 #include <errno.h>
 #include <stdio.h>
 
+struct QuadTree
+{
+	GLfloat x, y;			//Center
+	GLfloat size;			//offset
+	GLuint q_IndexBuffer;
+
+	QuadTree* topLeft;
+	QuadTree* topRight;
+	QuadTree* botLeft;
+	QuadTree* botRight;
+};
+
 class renderObject
 {
 public:
@@ -26,8 +38,10 @@ public:
 
 	float setVertexColor(int, int);	// Set color of the map
 
-private:
+	QuadTree createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY);
 
+private:
+	QuadTree quadTree;
 	bool generated;
 
 	int mapWidth;				// Width of .raw height map

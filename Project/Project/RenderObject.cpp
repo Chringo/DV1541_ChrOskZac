@@ -29,6 +29,8 @@ renderObject::renderObject()
 
 void renderObject::genBuffer(GLuint shader)
 {
+	quadTree = createQuadTree(2, 0, 0, mapWidth, mapHeight);
+
 	glGenBuffers(1, &VBOHeightMap);
 	glBindBuffer(GL_ARRAY_BUFFER, VBOHeightMap);
 
@@ -187,4 +189,40 @@ float renderObject::setVertexColor(int x, int y)
 {
 	float color = -0.15f + (getHeight(x, y) / 256.0f);
 	return color;
+}
+
+QuadTree renderObject::createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY)
+{
+	QuadTree root;
+
+	GLfloat x = ((endX - startX) / 2) + startX;
+	GLfloat y = ((endY - startY) / 2) + startY;
+	GLfloat size = abs((endX - startX) / 2);
+
+	root.x = x;
+	root.y = y;
+	root.size = size;
+
+	root.q_IndexBuffer = 0;
+	if (levels != 0)
+	{
+
+		QuadTree topLeft = createQuadTree(levels - 1, x - size, y, size, y - size);
+		QuadTree topRight = createQuadTree(levels - 1, x, y - size, x + size, y);
+		QuadTree botLeft = createQuadTree(levels - 1, x - size, y, x, y + size);
+		QuadTree botRight = createQuadTree(levels - 1, x, y, x + size, y + size);
+
+		root.topLeft = &topLeft;
+		root.topRight = &topRight;
+		root.botLeft = &botLeft;
+		root.botRight = &botRight;
+	}
+	else
+	{
+		root.topLeft = nullptr;
+		root.topRight = nullptr;
+		root.botLeft = nullptr;
+		root.botRight = nullptr;
+	}
+	return root;
 }
