@@ -170,7 +170,7 @@ void renderWindow::update()
 	if (x > 0 && x < 1024 && z > 0 && z < 1024)
 	{
 		 y = mainScene.obj.getHeight(x, z);
-		 mainScene.getCamera().translation[3] = glm::vec4(-x, -(y + 10), -z, 1.0);
+		 //mainScene.getCamera().translation[3] = glm::vec4(-x, -(y + 10), -z, 1.0);
 	}
 }
 

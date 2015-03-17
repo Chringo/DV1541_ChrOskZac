@@ -29,7 +29,6 @@ renderObject::renderObject()
 
 void renderObject::genBuffer(GLuint shader)
 {
-	quadTree = createQuadTree(2, 0, 0, mapWidth, mapHeight);
 
 	glGenBuffers(1, &VBOHeightMap);
 	glBindBuffer(GL_ARRAY_BUFFER, VBOHeightMap);
@@ -45,8 +44,9 @@ void renderObject::genBuffer(GLuint shader)
 	}
 	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPosition)* vIndex, &vertices[0], GL_STATIC_DRAW);
 
-	glGenBuffers(1, &indexBuffer);
+	/*glGenBuffers(1, &indexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+	
 	struct IndexTriangle
 	{
 		GLuint v0, v1, v2;
@@ -74,7 +74,12 @@ void renderObject::genBuffer(GLuint shader)
 		}
 	}
 	nrIndex = indexHolder.size();
+	
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(IndexTriangle)* indexHolder.size(), &indexHolder[0], GL_STATIC_DRAW);
+
+	*/
+
+	quadTree = createQuadTree(1, 0, 0, mapWidth, mapHeight);
 
 	glGenVertexArrays(1, &VAOHeightMap);
 	glBindVertexArray(VAOHeightMap);
@@ -117,6 +122,8 @@ renderObject::~renderObject()
 {
 	delete g_HeightMap;
 	delete vertices;
+
+	releaseQuadTree(quadTree);
 }
 
 void renderObject::render()
@@ -124,11 +131,29 @@ void renderObject::render()
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBOHeightMap);
 	glBindVertexArray(VAOHeightMap);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
 	// draw points 0-3 from the currently bound VAO with current in-use shader
-	glDrawElements(GL_TRIANGLES, 12 * nrIndex, GL_UNSIGNED_INT, (void*)0);
+	//glDrawElements(GL_TRIANGLES, 12 * nrIndex, GL_UNSIGNED_INT, (void*)0);
+	renderQuadTree(quadTree);
+}
 
+void renderObject::renderQuadTree(QuadTree* qt)
+{
+	if (qt->botLeft)
+	{
+		renderQuadTree(qt->botLeft);
+		renderQuadTree(qt->botRight);
+		renderQuadTree(qt->topLeft);
+		renderQuadTree(qt->topRight);
+	}
+	else
+	{
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, qt->q_IndexBuffer);
+
+		// draw points 0-3 from the currently bound VAO with current in-use shader
+		glDrawElements(GL_TRIANGLES, 12 * qt->nrIndex, GL_UNSIGNED_INT, (void*)0);
+	}
 }
 
 bool renderObject::loadRawFile(char* fileName)
@@ -191,38 +216,85 @@ float renderObject::setVertexColor(int x, int y)
 	return color;
 }
 
-QuadTree renderObject::createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY)
+QuadTree* renderObject::createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY)
 {
-	QuadTree root;
+	QuadTree* root = new QuadTree();
 
 	GLfloat x = ((endX - startX) / 2) + startX;
 	GLfloat y = ((endY - startY) / 2) + startY;
 	GLfloat size = abs((endX - startX) / 2);
 
-	root.x = x;
-	root.y = y;
-	root.size = size;
+	root->x = x;
+	root->y = y;
+	root->size = size;
 
-	root.q_IndexBuffer = 0;
+	root->q_IndexBuffer = 0;
 	if (levels != 0)
 	{
 
-		QuadTree topLeft = createQuadTree(levels - 1, x - size, y, size, y - size);
-		QuadTree topRight = createQuadTree(levels - 1, x, y - size, x + size, y);
-		QuadTree botLeft = createQuadTree(levels - 1, x - size, y, x, y + size);
-		QuadTree botRight = createQuadTree(levels - 1, x, y, x + size, y + size);
+		QuadTree* topLeft = createQuadTree(levels - 1, x - size, y, size, y - size);
+		QuadTree* topRight = createQuadTree(levels - 1, x, y - size, x + size, y);
+		QuadTree* botLeft = createQuadTree(levels - 1, x - size, y, x, y + size);
+		QuadTree* botRight = createQuadTree(levels - 1, x, y, x + size, y + size);
 
-		root.topLeft = &topLeft;
-		root.topRight = &topRight;
-		root.botLeft = &botLeft;
-		root.botRight = &botRight;
+		root->topLeft = topLeft;
+		root->topRight = topRight;
+		root->botLeft = botLeft;
+		root->botRight = botRight;
 	}
 	else
 	{
-		root.topLeft = nullptr;
-		root.topRight = nullptr;
-		root.botLeft = nullptr;
-		root.botRight = nullptr;
+		root->topLeft = nullptr;
+		root->topRight = nullptr;
+		root->botLeft = nullptr;
+		root->botRight = nullptr;
+
+		glGenBuffers(1, &root->q_IndexBuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, root->q_IndexBuffer);
+
+		struct IndexTriangle
+		{
+			GLuint v0, v1, v2;
+		};
+
+		std::vector<IndexTriangle> indexHolder;
+		for (int _w = (x - size) / quadSize; _w < ((x + size) / quadSize) - 1; ++_w)
+		{
+			for (int _h = (y - size) / quadSize; _h < ((y + size) / quadSize) - 1; ++_h)
+			{
+				GLuint vertexIndex = (_w * gridWidth) + _h;
+
+				IndexTriangle top;
+				top.v0 = vertexIndex;
+				top.v1 = vertexIndex + gridWidth + 1;
+				top.v2 = vertexIndex + 1;
+
+				IndexTriangle bottom;
+				bottom.v0 = top.v0;
+				bottom.v1 = vertexIndex + gridWidth;
+				bottom.v2 = top.v1;
+
+				indexHolder.push_back(top);
+				indexHolder.push_back(bottom);
+			}
+		}
+
+		root->nrIndex = indexHolder.size();
+
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(IndexTriangle)* root->nrIndex, &indexHolder[0], GL_STATIC_DRAW);
+
 	}
 	return root;
+}
+
+void renderObject::releaseQuadTree(QuadTree* qt)
+{
+	if (qt->botLeft)
+	{
+		releaseQuadTree(qt->botLeft);
+		releaseQuadTree(qt->botRight);
+		releaseQuadTree(qt->topLeft);
+		releaseQuadTree(qt->topRight);
+	}
+	delete qt;
 }

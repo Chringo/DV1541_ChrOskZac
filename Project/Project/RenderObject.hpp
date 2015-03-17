@@ -12,12 +12,15 @@ struct QuadTree
 	GLfloat x, y;			//Center
 	GLfloat size;			//offset
 	GLuint q_IndexBuffer;
+	GLuint nrIndex;
 
 	QuadTree* topLeft;
 	QuadTree* topRight;
 	QuadTree* botLeft;
 	QuadTree* botRight;
+
 };
+
 
 class renderObject
 {
@@ -38,10 +41,10 @@ public:
 
 	float setVertexColor(int, int);	// Set color of the map
 
-	QuadTree createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY);
+	QuadTree* createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY);
 
 private:
-	QuadTree quadTree;
+	QuadTree* quadTree;
 	bool generated;
 
 	int mapWidth;				// Width of .raw height map
@@ -72,6 +75,10 @@ private:
 	GLuint indexBuffer;
 
 	glm::mat4 modelMatrix;
+
+	void renderQuadTree(QuadTree* qt);
+
+	void releaseQuadTree(QuadTree* qt);
 };
 
 #endif
