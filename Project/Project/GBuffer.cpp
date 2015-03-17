@@ -1,9 +1,5 @@
 #include "GBuffer.hpp"
-#include <stdio.h>
-#include <vector>
-#include <glm\gtc\matrix_transform.hpp>
 #include "Light.hpp"
-
 
 bool GBuffer::init(int width, int height)
 {
@@ -26,18 +22,12 @@ bool GBuffer::init(int width, int height)
 	return setTextures(width, height);
 }
 
-
-void GBuffer::update(int width, int height)
-{
-	setTextures(width, height);
-}
-
 void GBuffer::genQuad()
 {
 	struct TriangleVertex
 	{
-		float x, y, z;
-		float u, v;
+		GLfloat x, y, z;
+		GLfloat u, v;
 	};
 
 	TriangleVertex tri[4] = 
@@ -62,15 +52,13 @@ void GBuffer::genQuad()
 	glGenVertexArrays(1, &lightVao);
 	glBindVertexArray(lightVao);
 
-	glEnableVertexAttribArray(0); //the vertex attribute object will remember its enabled attributes
-	glEnableVertexAttribArray(1);
-
-	/// this should be moved out from this class
-	/// as it is bound to shader, and can be used across multiple objects
-	//GLuint vertexPos = glGetAttribLocation(lightShader, "vertex_position");
+	// vertex in location 0
+	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), (void*) 0);
-	//GLuint uv = glGetAttribLocation(lightShader, "vertex_texCoord");
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), (void*)(sizeof(float)*3));
+	
+	// uv in location 1
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TriangleVertex), (void*)(sizeof(GLfloat) * 3));
 }
 
 bool GBuffer::setTextures(int width, int height)
@@ -120,10 +108,8 @@ bool GBuffer::setTextures(int width, int height)
 		fprintf(stderr, "FB error, status: 0x%x\n", Status);
 		return false;
 	}
-
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	
 	// light buffer
-
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lightBuffer.fbo);
 	glBindTexture(GL_TEXTURE_2D, lightBuffer.lightTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -140,10 +126,8 @@ bool GBuffer::setTextures(int width, int height)
 		fprintf(stderr, "FB error, status: 0x%x\n", Status);
 		return false;
 	}
-
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	
 	// shadow buffer
-
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, shadowFbo);
 	glBindTexture(GL_TEXTURE_2D, shadowTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -163,10 +147,6 @@ bool GBuffer::setTextures(int width, int height)
 		return false;
 	}
 
-
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	// restore default FBO
-
 	this->width = width;
 	this->height = height;
 
@@ -175,7 +155,6 @@ bool GBuffer::setTextures(int width, int height)
 
 void GBuffer::streamLights(void * data, int nrLigts, int objSize)
 {
-	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightBuffer.lightInfo);
 	glGenBuffers(1, &lightBuffer.lightInfo);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightBuffer.lightInfo);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, nrLigts * objSize, NULL, GL_STATIC_COPY);
@@ -202,12 +181,8 @@ void GBuffer::setLightView(void* view)
 
 void GBuffer::draw()
 {
-	GLuint pos;
-	// bind buffer
 	glBindBuffer(GL_ARRAY_BUFFER, lightVbo);
 	glBindVertexArray(lightVao);
-
-	/// do light calculations
 
 	glBindTexture(GL_TEXTURE_2D, lightBuffer.lightTexture);
 	glActiveTexture(GL_TEXTURE0);
@@ -218,21 +193,8 @@ void GBuffer::draw()
 	glBindImageTexture(3, normalTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 	glBindImageTexture(4, worldPosTexture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 
-	/*glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-	glActiveTexture(GL_TEXTURE0 + 1);
-	glBindTexture(GL_TEXTURE_2D, normalTexture);
-	glActiveTexture(GL_TEXTURE0 + 2);
-	glBindTexture(GL_TEXTURE_2D, worldPosTexture);
-	*/
-	/*pos = glGetUniformLocation(compShader, "diffuse");
-	glProgramUniform1i(compShader, pos, 0);
-	pos = glGetUniformLocation(compShader, "normal");
-	glProgramUniform1i(compShader, pos, 1);
-	pos = glGetUniformLocation(compShader, "worldPos");
-	glProgramUniform1i(compShader, pos, 2);
-	*/
-
+	GLuint pos;
+	// Binding matrices
 	pos = glGetUniformLocation(compShader, "lightView");
 	glUniformMatrix4fv(pos, 1, GL_FALSE, (const GLfloat*)lightVP);
 	pos = glGetUniformLocation(compShader, "proj");
@@ -240,6 +202,7 @@ void GBuffer::draw()
 	pos = glGetUniformLocation(compShader, "view");
 	glUniformMatrix4fv(pos, 1, GL_FALSE, (const GLfloat*) lightBuffer.view);
 	
+	// Binding samplers
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, worldPosTexture);
 	pos = glGetUniformLocation(compShader, "worldPosSampler");
@@ -250,34 +213,21 @@ void GBuffer::draw()
 	pos = glGetUniformLocation(compShader, "normalSampler");
 	glProgramUniform1i(compShader, pos, 1);
 
+	// Binding shadow map
 	glActiveTexture(GL_TEXTURE0 + 2);
 	glBindTexture(GL_TEXTURE_2D, shadowTexture);
 	pos = glGetUniformLocation(compShader, "shadowMap");
 	glProgramUniform1i(compShader, pos, 2);
 
+	// Binding screen size
 	pos = glGetUniformLocation(compShader, "screensize");
 	glProgramUniform2f(compShader, pos, width, height);
 
 	float tx = ceilf((float)width / 32.0f);
 	float ty = ceilf((float)height / 32.0f);
-	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightBuffer.lightInfo);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightBuffer.lightInfo);
 	glDispatchCompute(tx, ty , 1);
-	
-	/*glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lightBuffer.fbo);
 
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE);
-
-	glUseProgram(lightShader);
-
-	
-
-	// draw quad, on light FBO
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	*/
 	/// do end result
 	glDisable(GL_BLEND);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -293,17 +243,16 @@ void GBuffer::draw()
 	glActiveTexture(GL_TEXTURE0 + 2);
 	glBindTexture(GL_TEXTURE_2D, shadowTexture);
 
-
 	pos = glGetUniformLocation(combineShader, "diffuse");
 	glProgramUniform1i(combineShader, pos, 0);
+	
 	pos = glGetUniformLocation(combineShader, "lightMap");
 	glProgramUniform1i(combineShader, pos, 1);
 	
 	pos = glGetUniformLocation(combineShader, "shadowMap");
 	glProgramUniform1i(combineShader, pos, 2);
 
-
-	// drwa quad, on backbugffer
+	// draw quad in backbuffer
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	frame++;

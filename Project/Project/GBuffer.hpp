@@ -11,13 +11,13 @@ class GBuffer
 public:
 
 	bool init(int width, int height);
+	bool setTextures(int width, int height);
 
 	void bindDraw();
 	void bindShadow();
 	void bindRead();
 	void bindLightRead();
 
-	void update(int width, int height);
 	void setProjectionAndView(void * proj, void * view);
 	void setLightView(void* v);
 	void draw();
@@ -34,7 +34,7 @@ private:
 	GLuint lightVbo;
 	GLuint lightVao;
 
-	bool setTextures(int width, int height);
+	
 	void genQuad();
 
 	GLuint fbo;
@@ -64,9 +64,9 @@ private:
 	lightBuffer;
 
 
-	int width;
-	int height;
-	int frame;
+	GLuint width;
+	GLuint height;
+	GLuint frame;
 
 };
 

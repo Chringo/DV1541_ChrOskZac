@@ -8,12 +8,32 @@
 class fpsCounter
 {
 public:
-	fpsCounter();
-	~fpsCounter();
+	fpsCounter() {};
+	~fpsCounter() {};
 
-	// get fps and tick function
-	std::string get() const;
-	void tick();
+	std::string getFPS() const
+	{
+		return "FPS: " + std::to_string(m_fps);
+	}
+	void tick()
+	{
+
+		m_fpscount++;
+
+		end = std::chrono::high_resolution_clock::now();
+
+		if (std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() > 1000)
+		{
+
+			// save the current counter value to m_fps
+			m_fps = m_fpscount;
+
+			// reset the counter and the interval
+			m_fpscount = 0;
+			begin = std::chrono::high_resolution_clock::now();
+
+		}
+	}
 
 private:
 

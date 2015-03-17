@@ -4,7 +4,6 @@
 #include "RenderObject.hpp"
 #include <vector>
 #include "GBuffer.hpp"
-#include "Camera.hpp"
 
 #define GLM_FORCE_RADIANS
 #include <glm\glm.hpp>
@@ -17,7 +16,7 @@ class scene
 {
 public:
 	scene();
-	~scene();
+	~scene() {};
 
 	// render and update function
 	void renderScene();

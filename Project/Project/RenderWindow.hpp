@@ -11,14 +11,12 @@ class renderWindow
 	
 public:
 	renderWindow(GLFWwindow* window);
-	virtual ~renderWindow();
+	virtual ~renderWindow() {};
 
 	void createThread();
 
-	// update function
 	void update();
 
-	// check if the thread is running
 	bool isThreadRunning() const;
 
 private:

@@ -69,11 +69,6 @@ renderWindow::renderWindow(GLFWwindow* window)
 	threadRunning = false;
 }
 
-renderWindow::~renderWindow()
-{
-
-}
-
 void renderWindow::createThread()
 {
 	threadPointer = new std::thread(&renderWindow::renderThread, this);
@@ -91,7 +86,7 @@ bool renderWindow::isThreadRunning() const
 void renderWindow::update()
 {
 
-	glfwSetWindowTitle(window, fpsCount.get().c_str());
+	glfwSetWindowTitle(window, fpsCount.getFPS().c_str());
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT))
 	{
@@ -201,13 +196,10 @@ void renderWindow::renderThread()
 	{
 		render();
 		fpsCount.tick();
-		//Sleep(1000 / 10);
 	}
 	threadRunning = false;
 }
 
-
-// render function
 // would be possible to have multiple scenes to toggle between
 void renderWindow::render()
 {

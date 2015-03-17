@@ -6,11 +6,8 @@
 #include <glm\glm.hpp>
 #include <glm\gtc\quaternion.hpp>
 
-class camera
+struct camera
 {
-
-public:
-
 	float rx, ry, rz;
 
 	float width, height;
@@ -26,9 +23,6 @@ public:
 	
 		rot = glm::mat3_cast(glm::cross(quatx, quaty));
 	}
-
-private:
-	
 };
 
 #endif

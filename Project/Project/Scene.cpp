@@ -13,10 +13,7 @@ scene::scene()
 
 }
 
-scene::~scene()
-{
 
-}
 
 // create shader and object buffers
 bool scene::requestBuffer(int width, int height)
@@ -53,6 +50,7 @@ void scene::updateScene()
 void scene::renderScene()
 {
 	glUseProgram(0);
+
 	frameUpdate();
 
 	gBuffer.bindDraw();
@@ -190,7 +188,7 @@ void scene::frameUpdate()
 	// only needed if the window is resized
 	if (updateGBuffer)
 	{
-		gBuffer.update((int)cam.width, (int)cam.height);
+		gBuffer.setTextures((int)cam.width, (int)cam.height);
 		projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, cam.width / cam.height, 0.01f, 100.0f);
 		cam.projection = projectionMatrix;
 		updateGBuffer = false;

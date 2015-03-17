@@ -7,31 +7,25 @@
 #undef APIENTRY
 #include <Windows.h>
 
-
-// error callback function
 static void error_callback(int error, const char* description)
 {
 	fputs(description, stderr);
 }
 
-// window key callback function
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 }
-// main crap
+
 int main()
 {
-
-	// window pointer
 	GLFWwindow* window = nullptr;
 
 	glfwSetErrorCallback(error_callback);
 
 	// glfw library init
-	if (!glfwInit())
-		exit(EXIT_FAILURE);
+	if (!glfwInit()) exit(EXIT_FAILURE);
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
@@ -66,11 +60,10 @@ int main()
 		fprintf(stderr, "glew initialized\n");
 	}
 	glfwMakeContextCurrent(NULL);
-	///
-	
 
 	renderWindow rWindow(window);
 	rWindow.createThread();
+	
 	// while window is open
 	while (rWindow.isThreadRunning())
 	{
