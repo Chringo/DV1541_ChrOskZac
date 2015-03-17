@@ -279,14 +279,26 @@ QuadTree* renderObject::createQuadTree(int levels, GLfloat startX, GLfloat start
 			}
 		}*/
 
-		int countSize = (size * 2) / quadSize;
+		int countSizeX = (size * 2) / quadSize;
+		int countSizeY = (size * 2) / quadSize;
 
 		int xOffset = abs(x - size) / quadSize;
 		int yOffset = abs(y - size) / quadSize;
 
-		for (int _w = 0; _w < (countSize - 1); _w++)
+
+		// offset fix for last triangle row
+		if (gridWidth - countSizeX == xOffset)
 		{
-			for (int _h = 0; _h < (countSize - 1); _h++)
+			countSizeX--;
+		}
+		if (gridWidth - countSizeY == yOffset)
+		{
+			countSizeY--;
+		}
+
+		for (int _w = 0; _w < (countSizeX); _w++)
+		{
+			for (int _h = 0; _h < (countSizeY); _h++)
 			{
 				GLuint vertexIndex = ((_w + xOffset) * gridWidth) + (_h + yOffset);
 
