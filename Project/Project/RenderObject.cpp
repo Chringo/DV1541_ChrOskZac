@@ -79,7 +79,7 @@ void renderObject::genBuffer(GLuint shader)
 
 	*/
 
-	quadTree = createQuadTree(1, 0, 0, mapWidth, mapHeight);
+	quadTree = createQuadTree(2, 0, 0, mapWidth, mapHeight);
 
 	glGenVertexArrays(1, &VAOHeightMap);
 	glBindVertexArray(VAOHeightMap);
@@ -150,7 +150,6 @@ void renderObject::renderQuadTree(QuadTree* qt)
 	else
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, qt->q_IndexBuffer);
-
 		// draw points 0-3 from the currently bound VAO with current in-use shader
 		glDrawElements(GL_TRIANGLES, 12 * qt->nrIndex, GL_UNSIGNED_INT, (void*)0);
 	}
@@ -232,7 +231,7 @@ QuadTree* renderObject::createQuadTree(int levels, GLfloat startX, GLfloat start
 	if (levels != 0)
 	{
 
-		QuadTree* topLeft = createQuadTree(levels - 1, x - size, y, size, y - size);
+		QuadTree* topLeft = createQuadTree(levels - 1, x - size, y, x, y - size);
 		QuadTree* topRight = createQuadTree(levels - 1, x, y - size, x + size, y);
 		QuadTree* botLeft = createQuadTree(levels - 1, x - size, y, x, y + size);
 		QuadTree* botRight = createQuadTree(levels - 1, x, y, x + size, y + size);
@@ -258,11 +257,38 @@ QuadTree* renderObject::createQuadTree(int levels, GLfloat startX, GLfloat start
 		};
 
 		std::vector<IndexTriangle> indexHolder;
-		for (int _w = (x - size) / quadSize; _w < ((x + size) / quadSize) - 1; ++_w)
+		
+		/*for (int _w = (x - size) / quadSize; _w < ((x + size) / quadSize) - 1 ; ++_w)
 		{
-			for (int _h = (y - size) / quadSize; _h < ((y + size) / quadSize) - 1; ++_h)
+			for (int _h = (y - size) / quadSize; _h < ((y + size) / quadSize) -1; ++_h)
 			{
-				GLuint vertexIndex = (_w * gridWidth) + _h;
+				//GLuint vertexIndex = (_w * gridWidth) + _h;
+
+				IndexTriangle top;
+				top.v0 = _h + (gridWidth * _w);
+				top.v1 = (_h+1) + (gridWidth *( _w + 1));
+				top.v2 = (_h+1) + (gridWidth * _w);
+
+				IndexTriangle bottom;
+				bottom.v0 = top.v0;
+				bottom.v1 = _h + (gridWidth * (_w + 1));
+				bottom.v2 = top.v1;
+
+				indexHolder.push_back(top);
+				indexHolder.push_back(bottom);
+			}
+		}*/
+
+		int countSize = (size * 2) / quadSize;
+
+		int xOffset = abs(x - size) / quadSize;
+		int yOffset = abs(y - size) / quadSize;
+
+		for (int _w = 0; _w < (countSize - 1); _w++)
+		{
+			for (int _h = 0; _h < (countSize - 1); _h++)
+			{
+				GLuint vertexIndex = ((_w + xOffset) * gridWidth) + (_h + yOffset);
 
 				IndexTriangle top;
 				top.v0 = vertexIndex;
