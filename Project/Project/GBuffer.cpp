@@ -256,7 +256,7 @@ void GBuffer::draw()
 	glProgramUniform1i(compShader, pos, 2);
 
 	pos = glGetUniformLocation(compShader, "screensize");
-	glProgramUniform2f(compShader, pos, width, height);
+	glProgramUniform2i(compShader, pos, width, height);		// Formerly used glProgramUniform2f
 
 	float tx = ceilf((float)width / 32.0f);
 	float ty = ceilf((float)height / 32.0f);
