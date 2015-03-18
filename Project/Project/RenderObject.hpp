@@ -41,17 +41,16 @@ public:
 
 	float setVertexColor(int, int);	// Set color of the map
 
-	QuadTree* createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY);
-
 private:
 	QuadTree* quadTree;
+
 	bool generated;
 
 	int mapWidth;				// Width of .raw height map
 	int mapHeight;				// Height of .raw height map
 	int mapSize;				// Total size of height map
 	int quadSize;				// Width and height of each QUAD
-	unsigned char* g_HeightMap;	// Holds the height map data
+	unsigned char* g_HeightMap;	// Holds the height maps raw data
 
 	int gridWidth;				// Defined width for actual map
 	int gridHeight;				// Defined height for actual map
@@ -61,23 +60,19 @@ private:
 		GLfloat x, y, z;
 		GLfloat r, g, b;
 	};
-	VertexPosition* vertices;	// Formerly known as vertexMap* vMap
+	VertexPosition* vertices;	// Holds the colored height map data
 	GLfloat rgbColor;
 
 	float ry = 0;
-
-	// vArray should be moved out from this class
-	// and probably bound to a shader within its own class
-
+	glm::mat4 modelMatrix;
+	
 	GLuint VBOHeightMap;
-	GLuint nrIndex;
 	GLuint VAOHeightMap;
 	GLuint indexBuffer;
-
-	glm::mat4 modelMatrix;
-
+	GLuint nrIndex;
+		
+	QuadTree* createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY);
 	void renderQuadTree(QuadTree* qt);
-
 	void releaseQuadTree(QuadTree* qt);
 };
 

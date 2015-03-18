@@ -67,7 +67,7 @@ renderWindow::renderWindow(GLFWwindow* window)
 {
 	this->window = window;
 	threadRunning = false;
-	speed = 1.0f;
+	speed = 2.0f;
 }
 
 renderWindow::~renderWindow()

@@ -33,7 +33,7 @@ bool scene::requestBuffer(int width, int height)
 // update the objects
 void scene::updateScene()
 {
-	//obj.update();
+	//obj.update();		// If you feel like vomiting
 }
 
 // render our stuff
