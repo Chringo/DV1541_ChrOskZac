@@ -38,12 +38,12 @@ void renderObject::genBuffer(GLuint shader)
 		for (int _h = 0; _h < mapHeight; _h += quadSize)
 		{
 			rgbColor = setVertexColor(_w, _h);
-			vertices[vIndex++] = VertexPosition{ (GLfloat)_w, (GLfloat)getHeight(_w, _h), (GLfloat)_h, rgbColor, 0, rgbColor };
+			vertices[vIndex++] = VertexPosition{ static_cast<GLfloat>(_w), static_cast<GLfloat>(getHeight(_w, _h)), static_cast<GLfloat>(_h), rgbColor, 0, rgbColor };
 		}
 	}
 	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPosition)* vIndex, &vertices[0], GL_STATIC_DRAW);
 
-	quadTree = createQuadTree(4, 0.0f, 0.0f, (GLfloat)mapWidth, (GLfloat)mapHeight);
+	quadTree = createQuadTree(4, 0.0f, 0.0f, static_cast<GLfloat>(mapWidth), static_cast<GLfloat>(mapHeight));
 
 	glGenVertexArrays(1, &VAOHeightMap);
 	glBindVertexArray(VAOHeightMap);
@@ -218,12 +218,12 @@ QuadTree* renderObject::createQuadTree(int levels, GLfloat startX, GLfloat start
 
 		std::vector<IndexTriangle> indexHolder;
 		
-		int i_size = (int)size;
+		int i_size = static_cast<int>(size);
 		int countSizeX = (i_size * 2) / quadSize;
 		int countSizeY = (i_size * 2) / quadSize;
 
-		int xOffset = ((int)abs(x - i_size)) / quadSize;
-		int yOffset = ((int)abs(y - i_size)) / quadSize;
+		int xOffset = static_cast<int>(abs(x - i_size)) / quadSize;
+		int yOffset = static_cast<int>(abs(y - i_size)) / quadSize;
 
 
 		// offset fix for last triangle row
