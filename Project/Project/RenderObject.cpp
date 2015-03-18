@@ -17,7 +17,7 @@ renderObject::renderObject()
 	mapWidth = 1024;
 	mapHeight = 1024;
 	mapSize = mapWidth * mapHeight;
-	quadSize = 4;
+	quadSize = 2;
 	g_HeightMap = new unsigned char[mapSize];
 
 	gridWidth = mapWidth / quadSize;
@@ -25,6 +25,15 @@ renderObject::renderObject()
 
 	vertices = new VertexPosition[gridHeight * gridWidth];	// Allocate memory for the individual vertices of the terrain
 	rgbColor = 1.0f;
+
+	qLevels = 4;
+}
+renderObject::~renderObject()
+{
+	delete g_HeightMap;
+	delete vertices;
+
+	releaseQuadTree(quadTree);
 }
 
 void renderObject::genBuffer(GLuint shader)
@@ -38,12 +47,16 @@ void renderObject::genBuffer(GLuint shader)
 		for (int _h = 0; _h < mapHeight; _h += quadSize)
 		{
 			rgbColor = setVertexColor(_w, _h);
-			vertices[vIndex++] = VertexPosition{ static_cast<GLfloat>(_w), static_cast<GLfloat>(getHeight(_w, _h)), static_cast<GLfloat>(_h), rgbColor, 0, rgbColor };
+			vertices[vIndex++] = 
+				VertexPosition{ 
+				static_cast<GLfloat>(_w), static_cast<GLfloat>(getHeight(_w, _h)), static_cast<GLfloat>(_h),
+				rgbColor, rgbColor, rgbColor 
+			};
 		}
 	}
 	glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPosition)* vIndex, &vertices[0], GL_STATIC_DRAW);
 
-	quadTree = createQuadTree(4, 0.0f, 0.0f, static_cast<GLfloat>(mapWidth), static_cast<GLfloat>(mapHeight));
+	quadTree = createQuadTree(qLevels, 0.0f, 0.0f, static_cast<GLfloat>(mapWidth), static_cast<GLfloat>(mapHeight));
 
 	glGenVertexArrays(1, &VAOHeightMap);
 	glBindVertexArray(VAOHeightMap);
@@ -60,16 +73,16 @@ void renderObject::genBuffer(GLuint shader)
 void renderObject::update()
 {
 
-	glm::mat4 rotMatrix = glm::mat4(
-		cos((glm::pi<float>() / 180)*ry), 0.0f, -sin((glm::pi<float>() / 180)*ry), 0.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
-		sin((glm::pi<float>() / 180)*ry), 0.0f, cos((glm::pi<float>() / 180)*ry), 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f);
-
-	modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0, 0, -2.0));
-	modelMatrix = modelMatrix * rotMatrix;
-
-	ry += 1.0f;
+	//glm::mat4 rotMatrix = glm::mat4(
+	//	cos((glm::pi<float>() / 180)*ry), 0.0f, -sin((glm::pi<float>() / 180)*ry), 0.0f,
+	//	0.0f, 1.0f, 0.0f, 0.0f,
+	//	sin((glm::pi<float>() / 180)*ry), 0.0f, cos((glm::pi<float>() / 180)*ry), 0.0f,
+	//	0.0f, 0.0f, 0.0f, 1.0f);
+	//
+	//modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0, 0, -2.0));
+	//modelMatrix = modelMatrix * rotMatrix;
+	//
+	//ry += 1.0f;
 
 }
 
@@ -78,13 +91,6 @@ const GLfloat * renderObject::getModelMatrix() const
 	return &modelMatrix[0][0];
 }
 
-renderObject::~renderObject()
-{
-	delete g_HeightMap;
-	delete vertices;
-
-	releaseQuadTree(quadTree);
-}
 
 void renderObject::render()
 {
@@ -114,65 +120,16 @@ void renderObject::renderQuadTree(QuadTree* qt)
 		glDrawElements(GL_TRIANGLES, 12 * qt->nrIndex, GL_UNSIGNED_INT, (void*)0);
 	}
 }
-
-bool renderObject::loadRawFile(char* fileName)
+void renderObject::releaseQuadTree(QuadTree* qt)
 {
-	bool loadFromFile = false;
-	FILE* file = nullptr;
-
-	// Opens the file in Read/Binary mode.
-	file = fopen(fileName, "rb");
-
-	// Check if file was found and could open it
-	if (file != nullptr)
+	if (qt->botLeft)
 	{
-		// Read the .raw file into data array.
-		fread(g_HeightMap, 1, mapSize, file);
-
-		// Check for data error
-		int result = ferror(file);
-		result = errno;
-		if (result)
-		{
-			// Reading failed - check errno.h
-			// https://msdn.microsoft.com/en-us/library/t3ayayh1.aspx
-			loadFromFile = false;
-		}
-		else
-		{
-			loadFromFile = true;
-		}
-
+		releaseQuadTree(qt->botLeft);
+		releaseQuadTree(qt->botRight);
+		releaseQuadTree(qt->topLeft);
+		releaseQuadTree(qt->topRight);
 	}
-	else
-	{
-		// Height map not found
-		loadFromFile = false;
-	}
-	fclose(file);
-	return loadFromFile;
-}
-
-int renderObject::getHeight(int _x, int _y)
-{
-	// Force x and y to cap at (mapSize - 1)
-	int x = _x % mapWidth;
-	int y = _y % mapHeight;
-
-	// Check if empty
-	if (!g_HeightMap)
-	{
-		// TODO: printf to console
-		return 0;
-	}
-
-	// Treat the array like a 2D array (.raw format is a single array)
-	return g_HeightMap[x + (y * mapHeight)];	// Index into our height array and return the height
-}
-float renderObject::setVertexColor(int x, int y)
-{
-	float color = -0.15f + (getHeight(x, y) / 256.0f);
-	return color;
+	delete qt;
 }
 
 QuadTree* renderObject::createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY)
@@ -265,14 +222,68 @@ QuadTree* renderObject::createQuadTree(int levels, GLfloat startX, GLfloat start
 	return root;
 }
 
-void renderObject::releaseQuadTree(QuadTree* qt)
+void renderObject::createViewFrustum()
 {
-	if (qt->botLeft)
-	{
-		releaseQuadTree(qt->botLeft);
-		releaseQuadTree(qt->botRight);
-		releaseQuadTree(qt->topLeft);
-		releaseQuadTree(qt->topRight);
-	}
-	delete qt;
+	
 }
+
+/////////// --- HEIGHT MAP FUNCTIONS --- ///////////
+bool renderObject::loadRawFile(char* fileName)
+{
+	bool loadFromFile = false;
+	FILE* file = nullptr;
+
+	// Opens the file in Read/Binary mode.
+	file = fopen(fileName, "rb");
+
+	// Check if file was found and could open it
+	if (file != nullptr)
+	{
+		// Read the .raw file into data array.
+		fread(g_HeightMap, 1, mapSize, file);
+
+		// Check for data error
+		int result = ferror(file);
+		result = errno;
+		if (result)
+		{
+			// Reading failed - check errno.h
+			// https://msdn.microsoft.com/en-us/library/t3ayayh1.aspx
+			loadFromFile = false;
+		}
+		else
+		{
+			loadFromFile = true;
+		}
+
+	}
+	else
+	{
+		// Height map not found
+		loadFromFile = false;
+	}
+	fclose(file);
+	return loadFromFile;
+}
+int renderObject::getHeight(int _x, int _y)
+{
+	// Force x and y to cap at (mapSize - 1)
+	int x = _x % mapWidth;
+	int y = _y % mapHeight;
+
+	// Check if empty
+	if (!g_HeightMap)
+	{
+		// TODO: printf to console
+		return 0;
+	}
+
+	// Treat the array like a 2D array (.raw format is a single array)
+	return g_HeightMap[x + (y * mapHeight)];	// Index into our height array and return the height
+}
+GLfloat renderObject::setVertexColor(int x, int y)
+{
+	GLfloat color = -0.15f + (getHeight(x, y) / 256.0f);
+	return color;
+}
+/////////// --- ==================== --- ///////////

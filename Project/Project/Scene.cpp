@@ -33,7 +33,7 @@ bool scene::requestBuffer(int width, int height)
 // update the objects
 void scene::updateScene()
 {
-	//obj.update();		// If you feel like vomiting
+	obj.update();
 }
 
 // render our stuff
@@ -148,5 +148,5 @@ void scene::frameUpdate()
 
 	// update camera
 	viewMatrix = glm::mat4(cam.rot) * cam.translation;
-	projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, (cam.width / cam.height), 0.1f, 10000.0f);
+	projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, (cam.width / cam.height), 0.1f, 1000.0f);
 }

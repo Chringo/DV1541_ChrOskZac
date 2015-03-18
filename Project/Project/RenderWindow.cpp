@@ -169,8 +169,8 @@ void renderWindow::update()
 	int y = 0;
 	if (x > 0 && x < 1024 && z > 0 && z < 1024)
 	{
-		 y = mainScene.obj.getHeight(x, z);
-		 //mainScene.getCamera().translation[3] = glm::vec4(-x, -(y + 10), -z, 1.0);
+		y = mainScene.obj.getHeight(static_cast<int>(x), static_cast<int>(z));
+		mainScene.getCamera().translation[3] = glm::vec4(-x, -(y + 10), -z, 1.0);
 	}
 }
 

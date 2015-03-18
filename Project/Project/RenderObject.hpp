@@ -39,8 +39,7 @@ public:
 	bool loadRawFile(char*);	// Reads a.raw file (Be sure to get size of map first)
 	int getHeight(int, int);	// Returns height(0 to 255) of coordinates from a height map
 
-	float setVertexColor(int, int);	// Set color of the map
-
+	void createViewFrustum();
 private:
 	QuadTree* quadTree;
 
@@ -62,6 +61,7 @@ private:
 	};
 	VertexPosition* vertices;	// Holds the colored height map data
 	GLfloat rgbColor;
+	GLfloat setVertexColor(int, int);	// Set color of the map
 
 	float ry = 0;
 	glm::mat4 modelMatrix;
@@ -70,10 +70,11 @@ private:
 	GLuint VAOHeightMap;
 	GLuint indexBuffer;
 	GLuint nrIndex;
-		
-	QuadTree* createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY);
+
+	int qLevels;
 	void renderQuadTree(QuadTree* qt);
 	void releaseQuadTree(QuadTree* qt);
+	QuadTree* createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY);
 };
 
 #endif
