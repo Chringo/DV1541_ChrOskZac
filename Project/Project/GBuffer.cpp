@@ -256,13 +256,13 @@ void GBuffer::draw()
 	glProgramUniform1i(compShader, pos, 2);
 
 	pos = glGetUniformLocation(compShader, "screensize");
-	glProgramUniform2f(compShader, pos, width, height);		// Formerly used glProgramUniform2f cause it is the only that works
+	glProgramUniform2f(compShader, pos, (float)width, (float)height);		// Formerly used glProgramUniform2f cause it is the only that works
 
 	float tx = ceilf((float)width / 32.0f);
 	float ty = ceilf((float)height / 32.0f);
 	//glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightBuffer.lightInfo);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightBuffer.lightInfo);
-	glDispatchCompute(tx, ty , 1);
+	glDispatchCompute((GLuint)tx, (GLuint)ty, 1);
 	
 	/*glBindFramebuffer(GL_DRAW_FRAMEBUFFER, lightBuffer.fbo);
 
@@ -302,6 +302,8 @@ void GBuffer::draw()
 	pos = glGetUniformLocation(combineShader, "shadowMap");
 	glProgramUniform1i(combineShader, pos, 2);
 
+	pos = glGetUniformLocation(combineShader, "screensize");
+	glProgramUniform2f(combineShader, pos, (float)width, (float)height);		// Formerly used glProgramUniform2f cause it is the only that works
 
 	// drwa quad, on backbugffer
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

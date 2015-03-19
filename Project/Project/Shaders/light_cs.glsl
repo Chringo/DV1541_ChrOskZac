@@ -41,26 +41,6 @@ layout (local_size_x = WORKGROUP_SIZE, local_size_y = WORKGROUP_SIZE) in;
 
 vec2 size;
 
-
-// failed blur....
-// somewhat works
-vec4 multisample(sampler2D tex, vec2 coords)
-{
-    vec4 add = vec4(0.0);
-    int samples = 0;
-    float[] kernel = {(1.0/16.0), (1.0/8.0), (1.0/16.0), (1.0/8.0), (1.0/4.0), (1.0/8.0), (1.0/16.0), (1.0/8.0), (1.0/16.0)};
-    for(int x = -1; x < 1; x++)
-    {
-        for(int y = -1; y < 1; y++)
-        {
-          add += texture(tex, coords + vec2(x, y)/size );
-          samples++;
-        }
-    }
-    add /= samples;
-    return add;
-}
-
 void main()
 {
     size = screensize;
@@ -216,6 +196,8 @@ void main()
     
     float shadowFactor = 0.0f;
     
+    position = texture(worldPosSampler, gl_GlobalInvocationID.xy / screensize);
+    
     vec4 shadowCoord = proj * lightView * vec4(position.xyz, 1.0f);
     
     shadowCoord /= shadowCoord.w;
@@ -226,7 +208,7 @@ void main()
     float bias = 0.005*tan(acos(cosTheta)); // cosTheta is dot( n,l ), clamped between 0 and 1
     bias = clamp(bias, 0.0, 0.0000001);
     
-    if ( multisample( shadowMap, shadowCoord.xy ).x  > (shadowCoord.z - bias))
+    if ( texture( shadowMap, shadowCoord.xy ).x  > (shadowCoord.z - bias))
     {
         shadowFactor = 0.2;
     }
