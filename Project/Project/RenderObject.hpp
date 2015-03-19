@@ -9,10 +9,12 @@
 
 struct QuadTree
 {
-	GLfloat x, y;			//Center
+	GLfloat x, y, z = 100;			//Center
 	GLfloat size;			//offset
 	GLuint q_IndexBuffer;
 	GLuint nrIndex;
+
+	bool visible = false;
 
 	QuadTree* topLeft;
 	QuadTree* topRight;
@@ -39,7 +41,7 @@ public:
 	bool loadRawFile(char*);	// Reads a.raw file (Be sure to get size of map first)
 	int getHeight(int, int);	// Returns height(0 to 255) of coordinates from a height map
 
-	void createViewFrustum();
+	void createViewFrustum(glm::mat4 proj, glm::mat4 view, glm::vec2 screenSize);
 private:
 	QuadTree* quadTree;
 
@@ -66,15 +68,20 @@ private:
 	float ry = 0;
 	glm::mat4 modelMatrix;
 	
+	glm::vec4 frustumPlanes[6];
+
 	GLuint VBOHeightMap;
 	GLuint VAOHeightMap;
 	GLuint indexBuffer;
 	GLuint nrIndex;
 
+	glm::mat4 view;
+
 	int qLevels;
 	void renderQuadTree(QuadTree* qt);
 	void releaseQuadTree(QuadTree* qt);
 	QuadTree* createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY);
+	void checkQuadTree(QuadTree* qt);
 };
 
 #endif

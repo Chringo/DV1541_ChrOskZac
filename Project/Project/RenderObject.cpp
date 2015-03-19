@@ -72,7 +72,7 @@ void renderObject::genBuffer(GLuint shader)
 
 void renderObject::update()
 {
-
+	checkQuadTree(quadTree);
 	//glm::mat4 rotMatrix = glm::mat4(
 	//	cos((glm::pi<float>() / 180)*ry), 0.0f, -sin((glm::pi<float>() / 180)*ry), 0.0f,
 	//	0.0f, 1.0f, 0.0f, 0.0f,
@@ -84,6 +84,32 @@ void renderObject::update()
 	//
 	//ry += 1.0f;
 
+}
+
+void renderObject::checkQuadTree(QuadTree* qt)
+{
+	glm::vec4 pos = view * glm::vec4(qt->x, qt->z, qt->y, 1.0f);
+	float dist;
+	float rad = 1.0f;
+	bool inFrustum = true;
+	for (int i = 3; i >= 0 && inFrustum; i--)
+	{
+		dist = glm::dot(frustumPlanes[i], pos);
+		inFrustum = (-rad <= dist);
+	}
+
+	if (inFrustum)
+	{
+		//pointLight[id] = pLight;
+		if (qt->botLeft)
+		{
+			checkQuadTree(qt->botLeft);
+			checkQuadTree(qt->botRight);
+			checkQuadTree(qt->topLeft);
+			checkQuadTree(qt->topRight);
+		}
+	}
+	qt->visible = inFrustum;
 }
 
 const GLfloat * renderObject::getModelMatrix() const
@@ -106,18 +132,21 @@ void renderObject::render()
 
 void renderObject::renderQuadTree(QuadTree* qt)
 {
-	if (qt->botLeft)
+	if (qt->visible)
 	{
-		renderQuadTree(qt->botLeft);
-		renderQuadTree(qt->botRight);
-		renderQuadTree(qt->topLeft);
-		renderQuadTree(qt->topRight);
-	}
-	else
-	{
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, qt->q_IndexBuffer);
-		// draw points 0-3 from the currently bound VAO with current in-use shader
-		glDrawElements(GL_TRIANGLES, 12 * qt->nrIndex, GL_UNSIGNED_INT, (void*)0);
+		if (qt->botLeft)
+		{
+			renderQuadTree(qt->botLeft);
+			renderQuadTree(qt->botRight);
+			renderQuadTree(qt->topLeft);
+			renderQuadTree(qt->topRight);
+		}
+		else
+		{
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, qt->q_IndexBuffer);
+			// draw points 0-3 from the currently bound VAO with current in-use shader
+			glDrawElements(GL_TRIANGLES, 12 * qt->nrIndex, GL_UNSIGNED_INT, (void*)0);
+		}
 	}
 }
 void renderObject::releaseQuadTree(QuadTree* qt)
@@ -222,9 +251,34 @@ QuadTree* renderObject::createQuadTree(int levels, GLfloat startX, GLfloat start
 	return root;
 }
 
-void renderObject::createViewFrustum()
+void renderObject::createViewFrustum(glm::mat4 proj, glm::mat4 view, glm::vec2 screenSize)
 {
-	
+	glm::vec2 tileScale = screenSize * (1.0f / (screenSize));
+	glm::vec2 tileBias = tileScale - glm::vec2(1.0f, 1.0f);
+
+	glm::vec4 c1 = glm::vec4(-proj[0][0] * tileScale.x, 0.0f, tileBias.x, 0.0f);
+	glm::vec4 c2 = glm::vec4(0.0f, -proj[1][1] * tileScale.y, tileBias.y, 0.0f);
+	glm::vec4 c3 = proj[2];
+	glm::vec4 c4 = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+
+
+
+	frustumPlanes[0] = c4 - c1;
+	frustumPlanes[1] = c4 + c1;
+
+	frustumPlanes[2] = c4 - c2;
+	frustumPlanes[3] = c4 + c2;
+
+	frustumPlanes[4] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
+	frustumPlanes[5] = glm::vec4(0.0f, 0.0f, 100.0f, 0.0f);
+
+	for (int i = 0; i < 6; i++)
+	{
+		frustumPlanes[i] *= (1.0f / frustumPlanes[i].length());
+	}
+
+	this -> view = view;
+
 }
 
 /////////// --- HEIGHT MAP FUNCTIONS --- ///////////
