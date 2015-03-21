@@ -73,17 +73,6 @@ void renderObject::genBuffer(GLuint shader)
 void renderObject::update()
 {
 	checkQuadTree(quadTree);
-	//glm::mat4 rotMatrix = glm::mat4(
-	//	cos((glm::pi<float>() / 180)*ry), 0.0f, -sin((glm::pi<float>() / 180)*ry), 0.0f,
-	//	0.0f, 1.0f, 0.0f, 0.0f,
-	//	sin((glm::pi<float>() / 180)*ry), 0.0f, cos((glm::pi<float>() / 180)*ry), 0.0f,
-	//	0.0f, 0.0f, 0.0f, 1.0f);
-	//
-	//modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0, 0, -2.0));
-	//modelMatrix = modelMatrix * rotMatrix;
-	//
-	//ry += 1.0f;
-
 }
 
 void renderObject::checkQuadTree(QuadTree* qt)
@@ -100,7 +89,6 @@ void renderObject::checkQuadTree(QuadTree* qt)
 
 	if (inFrustum)
 	{
-		//pointLight[id] = pLight;
 		if (qt->botLeft)
 		{
 			checkQuadTree(qt->botLeft);
