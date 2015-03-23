@@ -85,6 +85,18 @@ void scene::renderScene()
 	glUniformMatrix4fv(projectionMat, 1, GL_FALSE, &projectionMatrix[0][0]);
 	obj.render(-1);
 
+	// Material as uniforms to compute shader
+	GLuint pos;
+	pos = glGetUniformLocation(gBuffer.compShader, "Ka");
+	glProgramUniform3f(gBuffer.compShader, pos, (GLfloat)obj.mtl.Ka.pos[0], (GLfloat)obj.mtl.Ka.pos[1], (GLfloat)obj.mtl.Ka.pos[2]);
+	pos = glGetUniformLocation(gBuffer.compShader, "Kd");
+	glProgramUniform3f(gBuffer.compShader, pos, (GLfloat)obj.mtl.Kd.pos[0], (GLfloat)obj.mtl.Kd.pos[1], (GLfloat)obj.mtl.Kd.pos[2]);
+	pos = glGetUniformLocation(gBuffer.compShader, "Ks");
+	glProgramUniform3f(gBuffer.compShader, pos, (GLfloat)obj.mtl.Ks.pos[0], (GLfloat)obj.mtl.Ks.pos[1], (GLfloat)obj.mtl.Ks.pos[2]);
+	pos = glGetUniformLocation(gBuffer.compShader, "Ns");
+	glProgramUniform1f(gBuffer.compShader, pos, (GLfloat)obj.mtl.Ns);
+	
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
