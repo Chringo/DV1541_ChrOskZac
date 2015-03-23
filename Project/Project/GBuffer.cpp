@@ -228,6 +228,39 @@ void GBuffer::draw()
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightBuffer.lightInfo);
 
 	glDispatchCompute((GLuint)tx, (GLuint)ty, 1);
+
+
+	/// do end result
+	glDisable(GL_BLEND);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+	glUseProgram(combineShader);
+	glBindBuffer(GL_ARRAY_BUFFER, lightVbo);
+	glBindVertexArray(lightVao);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+	glActiveTexture(GL_TEXTURE0 + 1);
+	glBindTexture(GL_TEXTURE_2D, lightBuffer.lightTexture);
+	glActiveTexture(GL_TEXTURE0 + 2);
+	glBindTexture(GL_TEXTURE_2D, shadowTexture);
+
+
+	pos = glGetUniformLocation(combineShader, "diffuse");
+	glProgramUniform1i(combineShader, pos, 0);
+	pos = glGetUniformLocation(combineShader, "lightMap");
+	glProgramUniform1i(combineShader, pos, 1);
+
+	pos = glGetUniformLocation(combineShader, "shadowMap");
+	glProgramUniform1i(combineShader, pos, 2);
+
+	pos = glGetUniformLocation(combineShader, "screensize");
+	glProgramUniform2f(combineShader, pos, (float)width, (float)height);		// Formerly used glProgramUniform2f cause it is the only that works
+
+	// drwa quad, on backbugffer
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+
 }
 
 void GBuffer::bindDraw()
