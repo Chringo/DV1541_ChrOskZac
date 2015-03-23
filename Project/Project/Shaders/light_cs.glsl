@@ -30,24 +30,19 @@ uniform mat4 proj;
 uniform mat4 view;
 
 shared uint pointLightIndex[MAX_LIGHTS];
-//shared Light pointLight[MAX_LIGHTS];
 shared uint pointLightCount = 0;
 
-const int sample_count = 16;
+const int sample_count = 2;
 
 vec3 pSphere[16] = vec3[](vec3(0.53812504, 0.18565957, -0.43192),vec3(0.13790712, 0.24864247, 0.44301823),vec3(0.33715037, 0.56794053, -0.005789503),vec3(-0.6999805, -0.04511441, -0.0019965635),vec3(0.06896307, -0.15983082, -0.85477847),vec3(0.056099437, 0.006954967, -0.1843352),vec3(-0.014653638, 0.14027752, 0.0762037),vec3(0.010019933, -0.1924225, -0.034443386),vec3(-0.35775623, -0.5301969, -0.43581226),vec3(-0.3169221, 0.106360726, 0.015860917),vec3(0.010350345, -0.58698344, 0.0046293875),vec3(-0.08972908, -0.49408212, 0.3287904),vec3(0.7119986, -0.0154690035, -0.09183723),vec3(-0.053382345, 0.059675813, -0.5411899),vec3(0.035267662, -0.063188605, 0.54602677),vec3(-0.47761092, 0.2847911, -0.0271716));
 
 layout (local_size_x = WORKGROUP_SIZE, local_size_y = WORKGROUP_SIZE) in;
 
-vec2 size;
-
 void main()
 {
-    size = screensize;
-    
 	ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
     
-    vec2 tileScale = size * (1.0f / float(2*WORKGROUP_SIZE));
+    vec2 tileScale = screensize * (1.0f / float(2*WORKGROUP_SIZE));
     vec2 tileBias = tileScale - vec2(gl_WorkGroupID.xy);
 
     vec4 c1 = vec4(-proj[0][0] * tileScale.x, 0.0f, tileBias.x, 0.0f);
@@ -93,7 +88,6 @@ void main()
         uint lightIndex =  passIt * threadCount + gl_LocalInvocationIndex;
         if( lightIndex > l.length())
             break;
-        //lightIndex = min(lightIndex, l.length());
         
         pLight = l[lightIndex];
         pos = view * vec4(pLight.pos.xyz, 1.0f);
@@ -112,18 +106,10 @@ void main()
             {
                 id = atomicAdd(pointLightCount, 1);
                 pointLightIndex[id] = lightIndex;
-                //pointLight[id] = pLight;
-                
             }
         }
     }
     barrier();
-    
-    
-    //if(pointLightCount > 0)
-    //{
-    //    LightColor = vec3(0.25f * pointLightCount);
-    //}
     
     // LIGHT CALCULATION
     
@@ -136,9 +122,8 @@ void main()
     for(uint index = 0; index < pointLightCount; index++)
     {
         Light pLight = l[pointLightIndex[index]];
-        //Light pLight = pointLight[index];
         float dist = distance(position.xyz, pLight.pos.xyz);
-        //if(dist < pLight.color.w)
+        if(dist < pLight.color.w)
         {
             
             float d = pLight.color.w;
@@ -153,14 +138,13 @@ void main()
     		vec3 specularLight = 0 * pLight.color.rgb * pow(max(dot(r, v), 0.0), shinyPower);
             
             lightColor += pLight.color.rgb * attenuation * max(dot(n, s), 0) + specularLight;
-            
         }
     }
     
     
     // SSAO
     
-    vec2 sampleCoord = (vec2(gl_GlobalInvocationID.xy) / size.xy);
+    vec2 sampleCoord = (vec2(gl_GlobalInvocationID.xy) / screensize.xy);
     vec4 vPos = position;
     vec4 wNorm = vec4(n, 1.0f);
     
