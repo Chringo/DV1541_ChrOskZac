@@ -160,7 +160,7 @@ void scene::generateShader()
 
 	if (CreateProgram(program, &lightShader, &lightShaderType, 1))
 	{
-		if (gBuffer.lightShader != 0)
+		if (gBuffer.compShader != 0)
 		{
 			glDeleteProgram(gBuffer.compShader);
 		}
