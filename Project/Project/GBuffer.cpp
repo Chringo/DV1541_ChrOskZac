@@ -257,7 +257,7 @@ void GBuffer::draw()
 	pos = glGetUniformLocation(combineShader, "screensize");
 	glProgramUniform2f(combineShader, pos, (float)width, (float)height);		// Formerly used glProgramUniform2f cause it is the only that works
 
-	// drwa quad, on backbugffer
+	// draw quad, on backbuffer
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 

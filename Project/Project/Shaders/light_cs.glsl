@@ -169,12 +169,10 @@ void main()
         vec4 samplePos = (texture(worldPosSampler, sampleTexCoord));
         vec4 sampleDir = normalize(samplePos - vPos);
         
-        float NdotS = max(dot(wNorm, sampleDir), 0);
-        
         float VPdistSP = distance(vPos, samplePos);
         
         float a = 1.0 - smoothstep(distanceThreshold, distanceThreshold*2, VPdistSP);
-        float b = NdotS;
+        float b = max(dot(wNorm, sampleDir), 0);
         
         ambientOcclusion += (a * b);
     }

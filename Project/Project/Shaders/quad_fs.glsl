@@ -10,7 +10,7 @@ uniform vec2 screensize;
 
 out vec4 fragment_color;
 
-// blur function
+// Gaussian blur
 vec4 blur(sampler2D tex, vec2 coords)
 {
     vec4 add = vec4(0.0);
