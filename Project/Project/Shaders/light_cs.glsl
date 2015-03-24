@@ -26,7 +26,7 @@ uniform sampler2D shadowMap;
 uniform vec3 Ka;
 uniform vec3 Kd;
 uniform vec3 Ks;
-uniform float Na;
+uniform float Ns;
 
 uniform vec2 screensize;
 
@@ -77,8 +77,7 @@ void main()
     
     // culling
     
-    // something something loop
-    // final color;
+    // final color
     vec3 lightColor = vec3(0.0f);
     barrier();
     
@@ -123,7 +122,6 @@ void main()
     vec4 normal = imageLoad(normalTex, pixelPos);
     vec3 n = normalize(normal.xyz);
     vec3 v = normalize(vec3(-position.xyz));
-    float shinyPower = 1000.0f;
     
     for(uint index = 0; index < pointLightCount; index++)
     {
@@ -141,7 +139,7 @@ void main()
             vec3 s = normalize(vec3(pLight.pos.xyz - position.xyz));
     
             vec3 r = reflect(-s, n);
-    		vec3 specularLight = 0 * pLight.color.rgb * pow(max(dot(r, v), 0.0), shinyPower);
+    		vec3 specularLight = Ks * pLight.color.rgb * pow(max(dot(r, v), 0.0), Ns);
             
             lightColor += pLight.color.rgb * attenuation * max(dot(n, s), 0) + specularLight;
         }
