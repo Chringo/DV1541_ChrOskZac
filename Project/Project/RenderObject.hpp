@@ -9,7 +9,7 @@
 
 struct QuadTree
 {
-	GLfloat x, y, z = 100;			//Center
+	GLfloat x, y, z = 100;	//Center
 	GLfloat size;			//offset
 	GLuint q_IndexBuffer;
 	GLuint nrIndex;

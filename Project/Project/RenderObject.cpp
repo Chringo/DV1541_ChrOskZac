@@ -250,15 +250,14 @@ void renderObject::createViewFrustum(glm::mat4 proj, glm::mat4 view, glm::vec2 s
 	glm::vec4 c4 = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 
 
+	frustumPlanes[0] = c4 - c1;								// Right
+	frustumPlanes[1] = c4 + c1;								// Left
 
-	frustumPlanes[0] = c4 - c1;
-	frustumPlanes[1] = c4 + c1;
+	frustumPlanes[2] = c4 - c2;								// Bottom
+	frustumPlanes[3] = c4 + c2;								// Top
 
-	frustumPlanes[2] = c4 - c2;
-	frustumPlanes[3] = c4 + c2;
-
-	frustumPlanes[4] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
-	frustumPlanes[5] = glm::vec4(0.0f, 0.0f, 100.0f, 0.0f);
+	frustumPlanes[4] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);	// Near
+	frustumPlanes[5] = glm::vec4(0.0f, 0.0f, 100.0f, 0.0f);	// Far
 
 	for (int i = 0; i < 6; i++)
 	{
