@@ -251,9 +251,6 @@ void GBuffer::draw()
 	pos = glGetUniformLocation(combineShader, "lightMap");
 	glProgramUniform1i(combineShader, pos, 1);
 
-	pos = glGetUniformLocation(combineShader, "shadowMap");
-	glProgramUniform1i(combineShader, pos, 2);
-
 	pos = glGetUniformLocation(combineShader, "screensize");
 	glProgramUniform2f(combineShader, pos, (float)width, (float)height);		// Formerly used glProgramUniform2f cause it is the only that works
 
