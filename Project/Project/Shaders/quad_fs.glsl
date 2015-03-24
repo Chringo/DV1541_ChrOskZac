@@ -36,6 +36,4 @@ void main () {
 	vec4 light_color = blur(lightMap, vertex_texCoord0);
     vec4 depth_color = texture(shadowMap, vertex_texCoord0);
     fragment_color = diffuse_color * (light_color);
-    
-    //fragment_color = light_color;
 }
