@@ -70,12 +70,12 @@ void renderObject::genBuffer(GLuint shader)
 	generated = true;
 }
 
-void renderObject::update()
+void renderObject::update(glm::mat4 camPos)
 {
-	checkQuadTree(quadTree);
+	checkQuadTree(quadTree, camPos);
 }
 
-void renderObject::checkQuadTree(QuadTree* qt)
+void renderObject::checkQuadTree(QuadTree* qt, glm::mat4 camPosIn)
 {
 	float size = qt->size;
 	glm::vec4 posOffset[] = {
@@ -86,15 +86,18 @@ void renderObject::checkQuadTree(QuadTree* qt)
 	};
 
 
+	// AABB in frustum
 	bool inside = false;
 	for (int o = 0; o < 4 && !inside; o++)
 	{
+
 		glm::vec4 pos = view * (glm::vec4(qt->x, qt->z, qt->y, 1.0f) + posOffset[o]);
 		float dist;
-		float rad = 1.0f;
+		float rad = 25.0f;
 		bool inFrustum = true;
 		for (int i = 4; i >= 0 && inFrustum; i--)
 		{
+			// AABB is infinite in height
 			if (i == 2 || i == 3) continue;
 			dist = glm::dot(frustumPlanes[i], pos);
 			inFrustum = (-rad <= dist);
@@ -102,7 +105,8 @@ void renderObject::checkQuadTree(QuadTree* qt)
 
 		dist = glm::dot(frustumPlanes[5], pos);
 
-		if (dist < -1)
+		// far plane check
+		if (dist < -rad)
 		{
 			inFrustum = false;
 		}
@@ -110,16 +114,28 @@ void renderObject::checkQuadTree(QuadTree* qt)
 		inside = inFrustum;
 	}
 
+	// frustum inside AABB
+	if (!inside)
+	{
+		glm::vec4 point0 = (glm::vec4(qt->x, qt->z, qt->y, 1.0f) + posOffset[0]);
+		glm::vec4 point3 = (glm::vec4(qt->x, qt->z, qt->y, 1.0f) + posOffset[3]);
 	
+		glm::vec4 camPos = camPosIn[3];
+		float camX = -camPos[0];
+		float camY = -camPos[2];
+		if (camX < point0.x && camX > point3.x && camY < point0.z && camY > point3.z)
+		{
+			inside = true;
+		}
+	}
 	
 	if (qt->botLeft)
 	{
-		checkQuadTree(qt->botLeft);
-		checkQuadTree(qt->botRight);
-		checkQuadTree(qt->topLeft);
-		checkQuadTree(qt->topRight);
+		checkQuadTree(qt->botLeft, camPosIn);
+		checkQuadTree(qt->botRight, camPosIn);
+		checkQuadTree(qt->topLeft, camPosIn);
+		checkQuadTree(qt->topRight, camPosIn);
 	}
-
 	qt->visible = inside;
 }
 
@@ -141,10 +157,6 @@ void renderObject::render()
 	//glDrawElements(GL_TRIANGLES, 12 * nrIndex, GL_UNSIGNED_INT, (void*)0);
 	renderQuadTree(quadTree);
 
-	if (renderCount)
-	{
-		renderCount = renderCount;
-	}
 }
 
 void renderObject::renderQuadTree(QuadTree* qt)

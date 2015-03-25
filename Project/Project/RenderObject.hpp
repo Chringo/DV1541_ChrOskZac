@@ -33,7 +33,7 @@ public:
 	void render();
 
 	void genBuffer(GLuint shader);
-	void update();
+	void update(glm::mat4);
 
 	// ability to get the modelmatrix for objects, these are unique
 	const GLfloat * getModelMatrix() const;
@@ -84,7 +84,7 @@ private:
 	void renderQuadTree(QuadTree* qt);
 	void releaseQuadTree(QuadTree* qt);
 	QuadTree* createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY);
-	void checkQuadTree(QuadTree* qt);	
+	void checkQuadTree(QuadTree* qt, glm::mat4);	
 
 };
 
