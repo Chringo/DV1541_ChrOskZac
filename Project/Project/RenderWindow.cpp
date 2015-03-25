@@ -4,6 +4,7 @@
 #undef APIENTRY
 #include <Windows.h>
 #include <iostream>
+#include <sstream>
 
 #ifdef _DEBUG
 extern "C"
@@ -93,7 +94,13 @@ bool renderWindow::isThreadRunning() const
 void renderWindow::update()
 {
 
-	glfwSetWindowTitle(window, fpsCount.get().c_str());
+	int frustumDrawCount = mainScene.obj.renderCount;
+
+	std::stringstream ss;
+
+	ss << fpsCount.get() << " Drawcount: " << frustumDrawCount;
+
+	glfwSetWindowTitle(window, ss.str().c_str());
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT))
 	{

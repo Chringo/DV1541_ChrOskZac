@@ -77,17 +77,41 @@ void renderObject::update()
 
 void renderObject::checkQuadTree(QuadTree* qt)
 {
-	glm::vec4 pos = view * glm::vec4(qt->x, qt->z, qt->y, 1.0f);
-	float dist;
-	float rad = 1.0f;
-	bool inFrustum = true;
-	for (int i = 3; i >= 0 && inFrustum; i--)
+	float size = qt->size;
+	glm::vec4 posOffset[] = {
+		glm::vec4(size, size, size, 0.0f),
+		glm::vec4(size, size, -size, 0.0f),
+		glm::vec4(-size, size, size, 0.0f),
+		glm::vec4(-size, size, -size, 0.0f),
+	};
+
+
+	bool inside = false;
+	for (int o = 0; o < 4 && !inside; o++)
 	{
-		dist = glm::dot(frustumPlanes[i], pos);
-		inFrustum = (-rad <= dist);
+		glm::vec4 pos = view * (glm::vec4(qt->x, qt->z, qt->y, 1.0f) + posOffset[o]);
+		float dist;
+		float rad = 1.0f;
+		bool inFrustum = true;
+		for (int i = 4; i >= 0 && inFrustum; i--)
+		{
+			if (i == 2 || i == 3) continue;
+			dist = glm::dot(frustumPlanes[i], pos);
+			inFrustum = (-rad <= dist);
+		}
+
+		dist = glm::dot(frustumPlanes[5], pos);
+
+		if (dist < -1)
+		{
+			inFrustum = false;
+		}
+
+		inside = inFrustum;
 	}
 
-	if (inFrustum)
+	
+	if (inside)
 	{
 		if (qt->botLeft)
 		{
@@ -97,7 +121,7 @@ void renderObject::checkQuadTree(QuadTree* qt)
 			checkQuadTree(qt->topRight);
 		}
 	}
-	qt->visible = inFrustum;
+	qt->visible = inside;
 }
 
 const GLfloat * renderObject::getModelMatrix() const
@@ -109,6 +133,7 @@ const GLfloat * renderObject::getModelMatrix() const
 void renderObject::render()
 {
 
+	renderCount = 0;
 	glBindBuffer(GL_ARRAY_BUFFER, VBOHeightMap);
 	glBindVertexArray(VAOHeightMap);
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -116,12 +141,18 @@ void renderObject::render()
 	// draw points 0-3 from the currently bound VAO with current in-use shader
 	//glDrawElements(GL_TRIANGLES, 12 * nrIndex, GL_UNSIGNED_INT, (void*)0);
 	renderQuadTree(quadTree);
+
+	if (renderCount)
+	{
+		renderCount = renderCount;
+	}
 }
 
 void renderObject::renderQuadTree(QuadTree* qt)
 {
 	if (qt->visible)
 	{
+		renderCount++;
 		if (qt->botLeft)
 		{
 			renderQuadTree(qt->botLeft);
@@ -241,12 +272,12 @@ QuadTree* renderObject::createQuadTree(int levels, GLfloat startX, GLfloat start
 
 void renderObject::createViewFrustum(glm::mat4 proj, glm::mat4 view, glm::vec2 screenSize)
 {
-	glm::vec2 tileScale = screenSize * (1.0f / (screenSize));
+	glm::vec2 tileScale = screenSize * (1.0f / screenSize);
 	glm::vec2 tileBias = tileScale - glm::vec2(1.0f, 1.0f);
 
 	glm::vec4 c1 = glm::vec4(-proj[0][0] * tileScale.x, 0.0f, tileBias.x, 0.0f);
 	glm::vec4 c2 = glm::vec4(0.0f, -proj[1][1] * tileScale.y, tileBias.y, 0.0f);
-	glm::vec4 c3 = proj[2];
+	glm::vec4 c3 = glm::vec4(0.0f, 0.0f, -proj[2][2], 0.0f);
 	glm::vec4 c4 = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);
 
 
@@ -256,8 +287,8 @@ void renderObject::createViewFrustum(glm::mat4 proj, glm::mat4 view, glm::vec2 s
 	frustumPlanes[2] = c4 - c2;								// Bottom
 	frustumPlanes[3] = c4 + c2;								// Top
 
-	frustumPlanes[4] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f);	// Near
-	frustumPlanes[5] = glm::vec4(0.0f, 0.0f, 100.0f, 0.0f);	// Far
+	frustumPlanes[4] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f) - c3;// glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);	// Near
+	frustumPlanes[5] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f) + c3;// glm::vec4(0.0f, 0.0f, -1.0f, 1000.0f);	// Far
 
 	for (int i = 0; i < 6; i++)
 	{

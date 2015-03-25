@@ -150,4 +150,5 @@ void scene::frameUpdate()
 	viewMatrix = glm::mat4(cam.rot) * cam.translation;
 	projectionMatrix = glm::perspective(glm::pi<float>()* 0.45f, (cam.width / cam.height), 0.1f, 1000.0f);
 	obj.createViewFrustum(projectionMatrix, viewMatrix, glm::vec2(cam.width, cam.height));
+
 }

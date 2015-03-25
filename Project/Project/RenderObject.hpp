@@ -42,6 +42,9 @@ public:
 	int getHeight(int, int);	// Returns height(0 to 255) of coordinates from a height map
 
 	void createViewFrustum(glm::mat4 proj, glm::mat4 view, glm::vec2 screenSize);
+
+	int renderCount;
+
 private:
 	QuadTree* quadTree;
 
@@ -81,7 +84,8 @@ private:
 	void renderQuadTree(QuadTree* qt);
 	void releaseQuadTree(QuadTree* qt);
 	QuadTree* createQuadTree(int levels, GLfloat startX, GLfloat startY, GLfloat endX, GLfloat endY);
-	void checkQuadTree(QuadTree* qt);
+	void checkQuadTree(QuadTree* qt);	
+
 };
 
 #endif
