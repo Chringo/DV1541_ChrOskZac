@@ -111,16 +111,15 @@ void renderObject::checkQuadTree(QuadTree* qt)
 	}
 
 	
-	if (inside)
+	
+	if (qt->botLeft)
 	{
-		if (qt->botLeft)
-		{
-			checkQuadTree(qt->botLeft);
-			checkQuadTree(qt->botRight);
-			checkQuadTree(qt->topLeft);
-			checkQuadTree(qt->topRight);
-		}
+		checkQuadTree(qt->botLeft);
+		checkQuadTree(qt->botRight);
+		checkQuadTree(qt->topLeft);
+		checkQuadTree(qt->topRight);
 	}
+
 	qt->visible = inside;
 }
 
@@ -150,18 +149,19 @@ void renderObject::render()
 
 void renderObject::renderQuadTree(QuadTree* qt)
 {
-	if (qt->visible)
+	
+	if (qt->botLeft)
 	{
-		renderCount++;
-		if (qt->botLeft)
+		renderQuadTree(qt->botLeft);
+		renderQuadTree(qt->botRight);
+		renderQuadTree(qt->topLeft);
+		renderQuadTree(qt->topRight);
+	}
+	else
+	{
+		if (qt->visible)
 		{
-			renderQuadTree(qt->botLeft);
-			renderQuadTree(qt->botRight);
-			renderQuadTree(qt->topLeft);
-			renderQuadTree(qt->topRight);
-		}
-		else
-		{
+			renderCount++;
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, qt->q_IndexBuffer);
 			// draw points 0-3 from the currently bound VAO with current in-use shader
 			glDrawElements(GL_TRIANGLES, 12 * qt->nrIndex, GL_UNSIGNED_INT, (void*)0);
@@ -288,7 +288,7 @@ void renderObject::createViewFrustum(glm::mat4 proj, glm::mat4 view, glm::vec2 s
 	frustumPlanes[3] = c4 + c2;								// Top
 
 	frustumPlanes[4] = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f) - c3;// glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);	// Near
-	frustumPlanes[5] = glm::vec4(0.0f, 0.0f, -1.0f, 0.0f) + c3;// glm::vec4(0.0f, 0.0f, -1.0f, 1000.0f);	// Far
+	frustumPlanes[5] = glm::vec4(0.0f, 0.0f, 0.0f, 1000.0f) + c3;// glm::vec4(0.0f, 0.0f, -1.0f, 1000.0f);	// Far
 
 	for (int i = 0; i < 6; i++)
 	{
