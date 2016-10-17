@@ -72,7 +72,7 @@ void renderObject::genBuffer(GLuint shader)
 
 void renderObject::update(glm::mat4 camPos)
 {
-	checkQuadTree(quadTree, camPos);
+	//checkQuadTree(quadTree, camPos);
 }
 
 void renderObject::checkQuadTree(QuadTree* qt, glm::mat4 camPosIn)

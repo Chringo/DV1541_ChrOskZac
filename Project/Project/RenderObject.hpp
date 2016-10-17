@@ -14,13 +14,12 @@ struct QuadTree
 	GLuint q_IndexBuffer;
 	GLuint nrIndex;
 
-	bool visible = false;
+	bool visible = true;
 
 	QuadTree* topLeft;
 	QuadTree* topRight;
 	QuadTree* botLeft;
 	QuadTree* botRight;
-
 };
 
 
@@ -68,7 +67,7 @@ private:
 	GLfloat rgbColor;
 	GLfloat setVertexColor(int, int);	// Set color of the map
 
-	float ry = 0;
+	//float ry = 0;
 	glm::mat4 modelMatrix;
 	
 	glm::vec4 frustumPlanes[6];
